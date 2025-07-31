@@ -456,11 +456,11 @@ end)()
 -- Création du bouton Auto Save
 local autoSaveButton = Instance.new("TextButton")
 autoSaveButton.Name = "AutoSaveButton"
-autoSaveButton.Parent = frame  -- Remplacer 'frame' par le parent approprié du GUI
-autoSaveButton.Size = UDim2.new(0, 200, 0, 30)  -- Ajuster la taille si besoin
-autoSaveButton.Position = UDim2.new(0, 0, 0, previousButtonY + 40) -- Placer sous le bouton Auto Plant Sapling
-autoSaveButton.BackgroundColor3 = Color3.fromRGB(139, 0, 0)  -- Rouge foncé
-autoSaveButton.TextColor3 = Color3.fromRGB(255, 255, 255)    -- Texte blanc
+autoSaveButton.Parent = rightContent -- <- Corrigé ici
+autoSaveButton.Size = UDim2.new(0, 160, 0, 30)
+autoSaveButton.Position = UDim2.new(0, 10, 0, 50) -- <- Corrigé ici (ajusté si nécessaire)
+autoSaveButton.BackgroundColor3 = Color3.fromRGB(139, 0, 0)
+autoSaveButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 autoSaveButton.Font = Enum.Font.Gotham
 autoSaveButton.Text = "Auto Save: OFF"
 autoSaveButton.TextSize = 14
@@ -469,41 +469,46 @@ autoSaveButton.TextSize = 14
 local autoSaveEnabled = false
 local lastSave = 0
 
--- Basculer l'état au clic (ON/OFF) et mettre à jour le texte:contentReference[oaicite:12]{index=12}
 autoSaveButton.MouseButton1Click:Connect(function()
-    autoSaveEnabled = not autoSaveEnabled
-    autoSaveButton.Text = "Auto Save: " .. (autoSaveEnabled and "ON" or "OFF")
+	autoSaveEnabled = not autoSaveEnabled
+	autoSaveButton.Text = "Auto Save: " .. (autoSaveEnabled and "ON" or "OFF")
 end)
 
--- Fonction pour configurer la surveillance de santé sur le personnage du joueur
+-- Fonction pour détecter le personnage et surveiller la vie
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
+
 local function onCharacterAdded(character)
-    local humanoid = character:WaitForChild("Humanoid")
-    humanoid.HealthChanged:Connect(function(health)
-        if not autoSaveEnabled then return end
-        -- Si vie <=25% de MaxHealth, et cooldown écoulé:contentReference[oaicite:13]{index=13}
-        if health <= humanoid.MaxHealth * 0.25 then
-            local now = tick()
-            if now - lastSave >= 5 then
-                lastSave = now
-                -- Téléportation au campfire (Vector3 donné):contentReference[oaicite:14]{index=14}
-                character:PivotTo(CFrame.new(Vector3.new(-0.16, 13.20, -0.03)))
-                -- Notification Roblox en bas de l'écran:contentReference[oaicite:15]{index=15}
-                game:GetService("StarterGui"):SetCore("SendNotification", {
-                    Title = "SkyyScripts",
-                    Text = "You have been saved by Auto Save",
-                    Duration = 5
-                })
-            end
-        end
-    end)
+	local humanoid = character:WaitForChild("Humanoid")
+	humanoid.HealthChanged:Connect(function(health)
+		if not autoSaveEnabled then return end
+		if health <= humanoid.MaxHealth * 0.25 then
+			local now = tick()
+			if now - lastSave >= 5 then
+				lastSave = now
+				-- Assure qu'on peut téléporter (PrimaryPart nécessaire)
+				if not character.PrimaryPart then
+					character.PrimaryPart = character:FindFirstChild("HumanoidRootPart")
+				end
+				if character.PrimaryPart then
+					character:PivotTo(CFrame.new(Vector3.new(-0.16, 13.20, -0.03)))
+					pcall(function()
+						game:GetService("StarterGui"):SetCore("SendNotification", {
+							Title = "SkyyScripts",
+							Text = "You have been saved by Auto Save",
+							Duration = 5
+						})
+					end)
+				end
+			end
+		end
+	end)
 end
 
--- Connexion aux événements de personnage
+-- Connexion aux personnages
 player.CharacterAdded:Connect(onCharacterAdded)
 if player.Character then
-    onCharacterAdded(player.Character)
+	onCharacterAdded(player.Character)
 end
 
     elseif cat == "Teleport" then
