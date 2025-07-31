@@ -134,11 +134,12 @@ local function showCategory(cat)
         bringBtn.TextColor3 = Color3.new(1,1,1)
         bringBtn.Font = Enum.Font.Gotham
         bringBtn.TextSize = 14
-        bringBtn.Text = "Bring Food"
+        bringBtn.Text = "Bring Food/heal"
         bringBtn.MouseButton1Click:Connect(function()
             local foodNames = {
                 "Carrot", "Corn", "Pumpkin", "Apple", "Morsel", "cooked Morsel",
-                "Steak", "cooked Steak", "Cake", "Chili", "Stew", "Hearty Stew"
+                "Steak", "cooked Steak", "Cake", "Chili", "Stew", "Hearty Stew",
+                "Bandage", "Medkit"
             }
             local char = player.Character
             if not char or not char:FindFirstChild("HumanoidRootPart") then return end
@@ -217,7 +218,9 @@ local function showCategory(cat)
                 "UFO Component",
                 "UFO Junk",
                 "Sheet Metal",
-                "Bolt"
+                "Bolt",
+                "Cultist Gem",
+                "Forest Gem"
             }
             local char = player.Character
             if not char or not char:FindFirstChild("HumanoidRootPart") then return end
@@ -276,105 +279,257 @@ bringFuelBtn.MouseButton1Click:Connect(function()
         end
     end
 end)
- 
-elseif cat == "Auto" then
-    local player = game.Players.LocalPlayer
-    local RunService = game:GetService("RunService")
 
-    local autoPlantSaplings = false
+local bringOtherBtn = Instance.new("TextButton", rightContent)
+bringOtherBtn.Size = UDim2.new(0, 150, 0, 35)
+bringOtherBtn.Position = UDim2.new(0, 10, 0, 90) -- sous "Bring Fuel"
+bringOtherBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+bringOtherBtn.TextColor3 = Color3.new(1, 1, 1)
+bringOtherBtn.Font = Enum.Font.Gotham
+bringOtherBtn.TextSize = 14
+bringOtherBtn.Text = "Bring Other"
 
-    -- Fonction pour trouver tous les saplings au sol dans Workspace
-    local function getSaplingsOnGround()
-        local saplings = {}
-        for _, obj in pairs(workspace:GetDescendants()) do
-            if obj.Name:lower():find("sapling") and obj:IsA("BasePart") then
-                table.insert(saplings, obj)
-            end
-        end
-        return saplings
-    end
+bringOtherBtn.MouseButton1Click:Connect(function()
+    local otherItems = {
+        "Chili Seeds", "Flower Seeds", "Berry Seeds", "Firefly Seeds",
+        "Old Sack", "Good Sack", "Giant Sack",
+        "Strong Flashlight", "Old Flashlight",
+        "Bunny Foot", "Wolf Pelt", "Alpha Wolf Pelt", "Bear Pelt"
+    }
+    local char = player.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    local hrpPos = char.HumanoidRootPart.Position
 
-    -- Fonction pour simuler planter un sapling (interaction)
-    local function plantSapling(sapling)
-        if not sapling or not sapling.Parent then return end
-
-        local char = player.Character
-        if char and char:FindFirstChild("HumanoidRootPart") then
-            local hrp = char.HumanoidRootPart
-            local targetPos = sapling.Position + Vector3.new(0, 3, 0) -- un peu au-dessus
-
-            hrp.CFrame = CFrame.new(targetPos)
-
-            task.wait(0.3)
-
-            local clickDet = sapling:FindFirstChildOfClass("ClickDetector")
-            if clickDet then
-                clickDet:FireClick(player)
-            else
-                print("Pas de ClickDetector trouvé sur sapling, gérer l'interaction manuellement.")
-            end
-
-            task.wait(1)
-        end
-    end
-
-elseif cat == "Auto" then
-    local player = game.Players.LocalPlayer
-    local autoPlantSaplings = false
-
-    -- Fonction pour détecter les saplings au sol
-    local function getSaplingsOnGround()
-        local saplings = {}
-        for _, obj in pairs(workspace:GetDescendants()) do
-            if obj:IsA("BasePart") and obj.Name:lower():find("sapling") then
-                table.insert(saplings, obj)
-            end
-        end
-        return saplings
-    end
-
-    -- Fonction pour simuler plantation
-    local function plantSapling(sapling)
-        local char = player.Character
-        if char and char:FindFirstChild("HumanoidRootPart") then
-            char.HumanoidRootPart.CFrame = CFrame.new(sapling.Position + Vector3.new(0, 3, 0))
-            task.wait(0.2)
-            local click = sapling:FindFirstChildWhichIsA("ClickDetector", true)
-            if click then
-                click:FireClick(player)
-            end
-        end
-    end
-
-    -- Boucle automatique
-    task.spawn(function()
-        while true do
-            if autoPlantSaplings then
-                local saplings = getSaplingsOnGround()
-                for _, s in ipairs(saplings) do
-                    plantSapling(s)
+    coroutine.wrap(function()
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if table.find(otherItems, obj.Name) then
+                local partToMove
+                if obj:IsA("Model") then
+                    partToMove = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                elseif obj:IsA("BasePart") then
+                    partToMove = obj
+                end
+                if partToMove then
+                    partToMove.CFrame = CFrame.new(hrpPos + Vector3.new(math.random(-3,3), 1, math.random(-3,3)))
+                    task.wait(0.01)
                 end
             end
-            task.wait(5)
+        end
+    end)()
+end)
+
+local bringWeaponBtn = Instance.new("TextButton", rightContent)
+bringWeaponBtn.Size = UDim2.new(0, 150, 0, 35)
+bringWeaponBtn.Position = UDim2.new(0, 170, 0, 90) -- juste en dessous du bouton Bring Fuel
+bringWeaponBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+bringWeaponBtn.TextColor3 = Color3.new(1, 1, 1)
+bringWeaponBtn.Font = Enum.Font.Gotham
+bringWeaponBtn.TextSize = 14
+bringWeaponBtn.Text = "Bring Weapon"
+
+bringWeaponBtn.MouseButton1Click:Connect(function()
+    local weaponArmorAmmoItems = {
+        "Leather Body", "Iron Body", "Thorn Body", "Riot Shield",
+        "Alien Armor",
+        "Spear", "Morningstar", "Katana", "Laser Sword",
+        "Revolver", "Rifle", "Tactical Shotgun", "Kunai", "Ray Gun", "Laser Cannon",
+        "Revolver Ammo", "Rifle Ammo", "Shotgun Ammo"
+    }
+    local char = player.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    local hrpPos = char.HumanoidRootPart.Position
+
+    coroutine.wrap(function()
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if table.find(weaponArmorAmmoItems, obj.Name) then
+                local partToMove
+                if obj:IsA("Model") then
+                    partToMove = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                elseif obj:IsA("BasePart") then
+                    partToMove = obj
+                end
+                if partToMove then
+                    partToMove.CFrame = CFrame.new(hrpPos + Vector3.new(math.random(-3,3), 1, math.random(-3,3)))
+                    task.wait(0.01)
+                end
+            end
+        end
+    end)()
+end)
+
+elseif cat == "Auto" then
+local autoPlant = false
+
+local plantBtn = Instance.new("TextButton", rightContent)
+plantBtn.Size = UDim2.new(0, 160, 0, 30)
+plantBtn.Position = UDim2.new(0, 10, 0, 10)
+plantBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+plantBtn.TextColor3 = Color3.new(1, 1, 1)
+plantBtn.Font = Enum.Font.Gotham
+plantBtn.TextSize = 14
+plantBtn.Text = "Auto Plant Sapling: OFF"
+
+plantBtn.MouseButton1Click:Connect(function()
+    autoPlant = not autoPlant
+    plantBtn.Text = "Auto Plant Sapling: " .. (autoPlant and "ON" or "OFF")
+end)
+
+-- Boucle de plantation
+task.spawn(function()
+    while true do
+        task.wait(2) -- petit délai pour éviter le freeze
+        if autoPlant then
+            for _, obj in ipairs(workspace:GetDescendants()) do
+                if obj.Name == "Sapling" and obj:IsA("Model") then
+                    local prompt = obj:FindFirstChildWhichIsA("ProximityPrompt", true)
+                    if prompt then
+                        fireproximityprompt(prompt)
+                        task.wait(0.2)
+                    end
+                end
+            end
+        end
+    end
+end)
+
+local autoPlant = false
+
+local plantBtn = Instance.new("TextButton", rightContent)
+plantBtn.Size = UDim2.new(0, 160, 0, 30)
+plantBtn.Position = UDim2.new(0, 10, 0, 10)
+plantBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+plantBtn.TextColor3 = Color3.new(1, 1, 1)
+plantBtn.Font = Enum.Font.Gotham
+plantBtn.TextSize = 14
+plantBtn.Text = "Auto Plant Sapling: OFF"
+
+plantBtn.MouseButton1Click:Connect(function()
+    autoPlant = not autoPlant
+    plantBtn.Text = "Auto Plant Sapling: " .. (autoPlant and "ON" or "OFF")
+end)
+
+-- Heal Campfire Button
+local healBtn = Instance.new("TextButton", rightContent)
+healBtn.Size = UDim2.new(0, 160, 0, 30)
+healBtn.Position = UDim2.new(0, 180, 0, 10)
+healBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+healBtn.TextColor3 = Color3.new(1, 1, 1)
+healBtn.Font = Enum.Font.Gotham
+healBtn.TextSize = 14
+healBtn.Text = "Heal Campfire"
+
+local campfirePosition = Vector3.new(-0.16, 13.20, -0.03)
+
+healBtn.MouseButton1Click:Connect(function()
+    local namesToTeleport = {
+        ["corpse"] = true,
+        ["sapling"] = true,
+        ["alien log"] = true,
+        ["chair"] = true,
+        ["coal"] = true,
+        ["fuel canister"] = true,
+        ["oil barrel"] = true,
+        ["biofuel"] = true,
+        ["log"] = true,
+    }
+
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("Model") then
+            local name = obj.Name:lower()
+            if name:find("log") or namesToTeleport[name] then
+                local primary = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                if primary then
+                    primary.CFrame = CFrame.new(campfirePosition + Vector3.new(math.random(-3, 3), 1, math.random(-3, 3)))
+                end
+            end
+        end
+    end
+end)
+
+
+-- Boucle de plantation améliorée
+coroutine.wrap(function()
+    while true do
+        task.wait(1)
+        if autoPlant then
+            for _, obj in ipairs(workspace:GetDescendants()) do
+                if obj:IsA("Model") and obj.Name == "Item Sapling" and not plantedSaplings[obj] then
+                    local prompt = obj:FindFirstChildWhichIsA("ProximityPrompt", true)
+                    if prompt and prompt.Enabled then
+                        fireproximityprompt(prompt)
+                        plantedSaplings[obj] = true
+                        task.wait(0.2)
+                    end
+                end
+            end
+        end
+    end
+end)()
+
+
+    elseif cat == "Teleport" then
+        local tpBtn = Instance.new("TextButton", rightContent)
+        tpBtn.Size = UDim2.new(0, 150, 0, 35)
+        tpBtn.Position = UDim2.new(0, 10, 0, 10)
+        tpBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+        tpBtn.TextColor3 = Color3.new(1, 1, 1)
+        tpBtn.Font = Enum.Font.Gotham
+        tpBtn.TextSize = 14
+        tpBtn.Text = "TP to Campfire"
+        tpBtn.MouseButton1Click:Connect(function()
+            local char = player.Character
+            if char and char:FindFirstChild("HumanoidRootPart") then
+                char.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(2.026, 4, 9.497))
+            end
+        end)
+
+-- TP TO CHILD
+local teleportBtn = Instance.new("TextButton", rightContent)
+teleportBtn.Size = UDim2.new(0, 160, 0, 30)
+teleportBtn.Position = UDim2.new(0, 10, 0, 50)
+teleportBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+teleportBtn.TextColor3 = Color3.new(1, 1, 1)
+teleportBtn.Font = Enum.Font.Gotham
+teleportBtn.TextSize = 14
+teleportBtn.Text = "TP to Child"
+
+local options = {"Dino Kid", "Squid Kid", "Kraken Kid", "Koala Kid"}
+
+local dropdown = Instance.new("Frame", rightContent)
+dropdown.Size = UDim2.new(0, 160, 0, #options * 25)
+dropdown.Position = UDim2.new(0, 10, 0, 90)
+dropdown.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+dropdown.Visible = false
+
+for i, childName in ipairs(options) do
+    local btn = Instance.new("TextButton", dropdown)
+    btn.Size = UDim2.new(1, 0, 0, 25)
+    btn.Position = UDim2.new(0, 0, 0, (i - 1) * 25)
+    btn.BackgroundColor3 = Color3.fromRGB(60, 0, 0)
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 12
+    btn.Text = childName
+
+    btn.MouseButton1Click:Connect(function()
+        dropdown.Visible = false
+        local player = game.Players.LocalPlayer
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            for _, descendant in ipairs(workspace:GetDescendants()) do
+                if descendant:IsA("Model") and descendant.Name == childName then
+                    local target = descendant:FindFirstChild("HumanoidRootPart") or descendant:FindFirstChildWhichIsA("BasePart")
+                    if target then
+                        player.Character:MoveTo(target.Position)
+                    end
+                end
+            end
         end
     end)
+end
 
-    -- BOUTON AJOUTÉ DANS LE MENU EXISTANT
-    local plantBtn = Instance.new("TextButton")
-    plantBtn.Size = UDim2.new(0, 200, 0, 35)
-    plantBtn.Position = UDim2.new(0, 10, 0, 10) -- ajuste selon besoin
-    plantBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
-    plantBtn.TextColor3 = Color3.new(1, 1, 1)
-    plantBtn.Font = Enum.Font.GothamBold
-    plantBtn.TextSize = 16
-    plantBtn.Text = "Auto Plant Saplings: OFF"
-    plantBtn.Parent = rightContent -- ← TRÈS IMPORTANT
-
-    plantBtn.MouseButton1Click:Connect(function()
-        autoPlantSaplings = not autoPlantSaplings
-        plantBtn.Text = "Auto Plant Saplings: " .. (autoPlantSaplings and "ON" or "OFF")
-        plantBtn.BackgroundColor3 = autoPlantSaplings and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
-    end)
+teleportBtn.MouseButton1Click:Connect(function()
+    dropdown.Visible = not dropdown.Visible
+end)
 
     elseif cat == "Settings" then
         local devLabel = Instance.new("TextLabel", rightContent)
