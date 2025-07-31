@@ -472,58 +472,49 @@ saplingButton.MouseButton1Click:Connect(function()
 end)
 
 -- BOUTON AUTO SAVE
-local autoSaveEnabled = false
-local lastSave = 0
-local autoSaveButton = Instance.new("TextButton")
-autoSaveButton.Name = "AutoSaveButton"
-autoSaveButton.Parent = rightContent
-autoSaveButton.Size = UDim2.new(0, 160, 0, 30)
-autoSaveButton.Position = UDim2.new(0, 10, 0, 50) -- Positionnée juste en dessous du bouton précédent
-autoSaveButton.BackgroundColor3 = Color3.fromRGB(139, 0, 0)
-autoSaveButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-autoSaveButton.Font = Enum.Font.Gotham
-autoSaveButton.Text = "Auto Save: OFF"
-autoSaveButton.TextSize = 14
+    -- Bouton Auto Save
+    local autoSaveBtn = Instance.new("TextButton", rightContent)
+    autoSaveBtn.Size = UDim2.new(0, 160, 0, 30)
+    autoSaveBtn.Position = UDim2.new(0, 10, 0, 50)
+    autoSaveBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+    autoSaveBtn.TextColor3 = Color3.new(1, 1, 1)
+    autoSaveBtn.Font = Enum.Font.Gotham
+    autoSaveBtn.TextSize = 14
+    autoSaveBtn.Text = "Auto Save: " .. (autoSaveEnabled and "ON" or "OFF")
 
-autoSaveButton.MouseButton1Click:Connect(function()
-	autoSaveEnabled = not autoSaveEnabled
-	autoSaveButton.Text = "Auto Save: " .. (autoSaveEnabled and "ON" or "OFF")
-end)
+    autoSaveBtn.MouseButton1Click:Connect(function()
+        autoSaveEnabled = not autoSaveEnabled
+        autoSaveBtn.Text = "Auto Save: " .. (autoSaveEnabled and "ON" or "OFF")
+    end)
 
--- DÉTECTION DE VIE + TÉLÉPORTATION
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-
-local function onCharacterAdded(character)
-	local humanoid = character:WaitForChild("Humanoid")
-	humanoid.HealthChanged:Connect(function(health)
-		if not autoSaveEnabled then return end
-		if health <= humanoid.MaxHealth * 0.25 then
-			local now = tick()
-			if now - lastSave >= 5 then
-				lastSave = now
-				if not character.PrimaryPart then
-					character.PrimaryPart = character:FindFirstChild("HumanoidRootPart")
-				end
-				if character.PrimaryPart then
-					character:PivotTo(CFrame.new(Vector3.new(-0.16, 13.20, -0.03)))
-					pcall(function()
-						game:GetService("StarterGui"):SetCore("SendNotification", {
-							Title = "SkyyScripts",
-							Text = "You have been saved by Auto Save",
-							Duration = 5
-						})
-					end)
-				end
-			end
-		end
-	end)
-end
-
-player.CharacterAdded:Connect(onCharacterAdded)
-if player.Character then
-	onCharacterAdded(player.Character)
-end
+    -- Système de détection de vie basse
+    player.CharacterAdded:Connect(function(character)
+        local humanoid = character:WaitForChild("Humanoid")
+        
+        humanoid.HealthChanged:Connect(function()
+            if autoSaveEnabled and humanoid.Health <= humanoid.MaxHealth * 0.25 then
+                local now = tick()
+                if now - lastSaveTime >= saveCooldown then
+                    lastSaveTime = now
+                    
+                    -- Téléportation au campfire
+                    if character:FindFirstChild("HumanoidRootPart") then
+                        character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(2.026, 4, 9.497))
+                        
+                        -- Notification
+                        game:GetService("StarterGui"):SetCore("SendNotification", {
+                            Title = "SkyyScripts",
+                            Text = "You have been saved by Auto Save",
+                            Duration = 5
+                        })
+                    end
+                end
+            end
+        end)
+    end)
+    
+    -- Existing auto-plant code...
+    -- (conserve ici le code existant pour l'auto-plant)
 
     elseif cat == "Teleport" then
         local tpBtn = Instance.new("TextButton", rightContent)
