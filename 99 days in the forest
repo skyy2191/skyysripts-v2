@@ -113,18 +113,27 @@ local function showCategory(cat)
             end
         end)
 
-        local autoToggle = Instance.new("TextButton", rightContent)
-        autoToggle.Size = UDim2.new(0, 150, 0, 35)
-        autoToggle.Position = UDim2.new(0, 170, 0, 10)
-        autoToggle.BackgroundColor3 = Color3.fromRGB(120, 0, 0)
-        autoToggle.TextColor3 = Color3.new(1, 1, 1)
-        autoToggle.Font = Enum.Font.Gotham
-        autoToggle.TextSize = 14
-        autoToggle.Text = "Auto Save: OFF"
-        autoToggle.MouseButton1Click:Connect(function()
-            autoSaveEnabled = not autoSaveEnabled
-            autoToggle.Text = "Auto Save: " .. (autoSaveEnabled and "ON" or "OFF")
-        end)
+-- AUTO SAVE SYSTEM (TP to campfire if low HP)
+local autoSaveEnabled = true
+local campfirePosition = Vector3.new(-0.16, 13.20, -0.03)
+
+coroutine.wrap(function()
+    while true do
+        task.wait(1)
+        if autoSaveEnabled then
+            local player = game.Players.LocalPlayer
+            if player and player.Character then
+                local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+                if humanoid and humanoid.Health > 0 then
+                    local maxHealth = humanoid.MaxHealth
+                    if humanoid.Health <= (maxHealth * 0.25) then
+                        player.Character:SetPrimaryPartCFrame(CFrame.new(campfirePosition))
+                    end
+                end
+            end
+        end
+    end
+end)()
 
     elseif cat == "Bring Items" then
         local bringBtn = Instance.new("TextButton", rightContent)
