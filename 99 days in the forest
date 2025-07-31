@@ -459,7 +459,7 @@ local campfirePosition = Vector3.new(-0.16, 13.20, -0.03)
 
 local autoSaveBtn = Instance.new("TextButton", mainContent)
 autoSaveBtn.Size = UDim2.new(0, 160, 0, 30)
-autoSaveBtn.Position = UDim2.new(0, 10, 0, 140) -- ajuste ici si besoin
+autoSaveBtn.Position = UDim2.new(0, 10, 0, 50) -- ajuste ici si besoin
 autoSaveBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
 autoSaveBtn.TextColor3 = Color3.new(1, 1, 1)
 autoSaveBtn.Font = Enum.Font.Gotham
