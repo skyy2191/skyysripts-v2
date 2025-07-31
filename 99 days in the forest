@@ -484,6 +484,14 @@ end)()
         end)
 
 -- TP TO CHILD
+local function notify(title, text)
+    game.StarterGui:SetCore("SendNotification", {
+        Title = title,
+        Text = text,
+        Duration = 5
+    })
+end
+
 local teleportBtn = Instance.new("TextButton", rightContent)
 teleportBtn.Size = UDim2.new(0, 160, 0, 30)
 teleportBtn.Position = UDim2.new(0, 10, 0, 50)
@@ -513,16 +521,28 @@ for i, childName in ipairs(options) do
 
     btn.MouseButton1Click:Connect(function()
         dropdown.Visible = false
-        local player = game.Players.LocalPlayer
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            for _, descendant in ipairs(workspace:GetDescendants()) do
-                if descendant:IsA("Model") and descendant.Name == childName then
-                    local target = descendant:FindFirstChild("HumanoidRootPart") or descendant:FindFirstChildWhichIsA("BasePart")
-                    if target then
-                        player.Character:MoveTo(target.Position)
-                    end
+        local found = nil
+
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("Model") and obj.Name == childName then
+                local hrp = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChildWhichIsA("BasePart")
+                if hrp then
+                    found = hrp
+                    break
                 end
             end
+        end
+
+        local character = game.Players.LocalPlayer.Character
+        if found and character and character:FindFirstChild("HumanoidRootPart") then
+            local dist = (character.HumanoidRootPart.Position - found.Position).Magnitude
+            if dist > 3 then
+                character:MoveTo(found.Position)
+            else
+                notify("SkyyScripts", "Map is too small to teleport to this child.")
+            end
+        else
+            notify("SkyyScripts", "Child not found in the map.")
         end
     end)
 end
