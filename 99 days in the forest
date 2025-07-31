@@ -453,69 +453,62 @@ coroutine.wrap(function()
     end
 end)()
 
--- Création du bouton dans la catégorie "Auto"
-local autoSaveButton = Instance.new("TextButton")
-autoSaveButton.Name = "AutoSaveToggle"
-autoSaveButton.Text = "Auto Save: OFF"                 -- Texte initial
-autoSaveButton.BackgroundColor3 = Color3.fromRGB(100, 0, 0)  -- Rouge foncé
-autoSaveButton.TextColor3 = Color3.new(1, 1, 1)        -- Blanc
-autoSaveButton.Font = Enum.Font.Gotham                 -- Police Gotham
--- (Position/Size à ajuster selon l’interface existante)
-autoSaveButton.Parent = uiCategoryFrame  -- Placer dans le bon parent de l’interface
-
-local autoSaveEnabled = false
-autoSaveButton.MouseButton1Click:Connect(function()
-    autoSaveEnabled = not autoSaveEnabled
-    if autoSaveEnabled then
-        autoSaveButton.Text = "Auto Save: ON"
-    else
-        autoSaveButton.Text = "Auto Save: OFF"
-    end
-end)
-
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
+-- Auto Save Toggle
+local autoSave = false
 local lastSaveTime = 0
-local cooldown = 5  -- délai en secondes
+local campfirePosition = Vector3.new(-0.16, 13.20, -0.03)
 
--- Fonction de téléportation + notification
-local function teleportToCampfire()
-    local char = player.Character
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        -- Téléporte le joueur aux coordonnées du campfire
-        char.HumanoidRootPart.CFrame = CFrame.new(-0.16, 13.20, -0.03)
-        -- Affiche la notification Roblox via SetCore
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "SkyyScripts",
-            Text = "You have been saved by Auto Save",
-            Duration = 5
-        })
-    end
-end
+local autoSaveBtn = Instance.new("TextButton", rightContent)
+autoSaveBtn.Size = UDim2.new(0, 160, 0, 30)
+autoSaveBtn.Position = UDim2.new(0, 10, 0, 50) -- Place sous le bouton Auto Plant Sapling
+autoSaveBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+autoSaveBtn.TextColor3 = Color3.new(1, 1, 1)
+autoSaveBtn.Font = Enum.Font.Gotham
+autoSaveBtn.TextSize = 14
+autoSaveBtn.Text = "Auto Save: OFF"
 
--- Fonction appelée quand la santé change
-local function onHealthChanged(newHealth)
-    local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-    if not humanoid then return end
-    if autoSaveEnabled and newHealth <= humanoid.MaxHealth * 0.25 then
-        -- Vérification du cooldown pour éviter le spam:contentReference[oaicite:2]{index=2}
-        if tick() - lastSaveTime >= cooldown then
-            lastSaveTime = tick()
-            teleportToCampfire()
-        end
-    end
-end
-
--- Connexion de l'événement HealthChanged au personnage du joueur
-if player.Character then
-    local humanoid = player.Character:WaitForChild("Humanoid")
-    humanoid.HealthChanged:Connect(onHealthChanged)
-end
-player.CharacterAdded:Connect(function(char)
-    local humanoid = char:WaitForChild("Humanoid")
-    humanoid.HealthChanged:Connect(onHealthChanged)
+autoSaveBtn.MouseButton1Click:Connect(function()
+	autoSave = not autoSave
+	autoSaveBtn.Text = "Auto Save: " .. (autoSave and "ON" or "OFF")
 end)
 
+-- Fonction de téléportation avec notification
+local function teleportToCampfire()
+	local player = game.Players.LocalPlayer
+	local char = player.Character
+	if char and char:FindFirstChild("HumanoidRootPart") then
+		char:MoveTo(campfirePosition)
+
+		pcall(function()
+			game:GetService("StarterGui"):SetCore("SendNotification", {
+				Title = "SkyyScripts",
+				Text = "You have been saved by Auto Save",
+				Duration = 5
+			})
+		end)
+	end
+end
+
+-- Détection de santé et auto-save
+task.spawn(function()
+	while true do
+		task.wait(1)
+		if autoSave then
+			local player = game.Players.LocalPlayer
+			local char = player.Character
+			if char and char:FindFirstChild("Humanoid") then
+				local humanoid = char:FindFirstChildOfClass("Humanoid")
+				if humanoid and humanoid.Health > 0 then
+					local maxHealth = humanoid.MaxHealth
+					if humanoid.Health <= maxHealth * 0.25 and tick() - lastSaveTime >= 5 then
+						lastSaveTime = tick()
+						teleportToCampfire()
+					end
+				end
+			end
+		end
+	end
+end)
 
 
 
