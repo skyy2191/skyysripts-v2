@@ -1,0 +1,488 @@
+-- SkyyScripts GUI pour 99 Nights in the Forest 🔦
+local player = game.Players.LocalPlayer
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+gui.Name = "SkyyScriptsGui"
+gui.ResetOnSpawn = false
+
+local mainFrame, rightContent
+local toggleKey = Enum.KeyCode.G
+local key = "1234"
+local menuVisible = false
+local autoSaveEnabled = false
+
+local function validateKey(inputKey)
+    return inputKey == key
+end
+
+local function showMainMenu()
+    if mainFrame then mainFrame:Destroy() end
+
+    mainFrame = Instance.new("Frame", gui)
+    mainFrame.Size = UDim2.new(0, 500, 0, 300)
+    mainFrame.Position = UDim2.new(0.5, -250, 0.5, -150)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Active = true
+
+    local dragBar = Instance.new("Frame", mainFrame)
+    dragBar.Size = UDim2.new(1, 0, 0, 30)
+    dragBar.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+
+    local dragTitle = Instance.new("TextLabel", dragBar)
+    dragTitle.Size = UDim2.new(1, 0, 1, 0)
+    dragTitle.BackgroundTransparency = 1
+    dragTitle.TextColor3 = Color3.new(1, 1, 1)
+    dragTitle.Text = "99 Nights in the Forest"
+    dragTitle.Font = Enum.Font.GothamBold
+    dragTitle.TextSize = 18
+
+    local dragging = false
+    local dragInput, dragStart, startPos
+
+    dragBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = mainFrame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    dragBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if dragging and input == dragInput then
+            local delta = input.Position - dragStart
+            mainFrame.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    local leftPanel = Instance.new("Frame", mainFrame)
+    leftPanel.Size = UDim2.new(0, 120, 1, -30)
+    leftPanel.Position = UDim2.new(0, 0, 0, 30)
+    leftPanel.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+
+    local separator = Instance.new("Frame", mainFrame)
+    separator.Size = UDim2.new(0, 2, 1, -30)
+    separator.Position = UDim2.new(0, 120, 0, 30)
+    separator.BackgroundColor3 = Color3.new(0, 0, 0)
+
+    rightContent = Instance.new("Frame", mainFrame)
+    rightContent.Size = UDim2.new(1, -122, 1, -30)
+    rightContent.Position = UDim2.new(0, 122, 0, 30)
+    rightContent.BackgroundColor3 = Color3.new(0, 0, 0)
+    rightContent.BackgroundTransparency = 0.3
+    rightContent.ClipsDescendants = true
+
+    local categories = {"Main", "Bring Items", "Auto", "Visual", "Teleport", "Settings"}
+
+    local function clearRight()
+        for _, c in ipairs(rightContent:GetChildren()) do
+            c:Destroy()
+        end
+    end
+
+local function showCategory(cat)
+    clearRight()
+    if cat == "Main" then
+        local tpBtn = Instance.new("TextButton", rightContent)
+        tpBtn.Size = UDim2.new(0, 150, 0, 35)
+        tpBtn.Position = UDim2.new(0, 10, 0, 10)
+        tpBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+        tpBtn.TextColor3 = Color3.new(1, 1, 1)
+        tpBtn.Font = Enum.Font.Gotham
+        tpBtn.TextSize = 14
+        tpBtn.Text = "TP to Campfire"
+        tpBtn.MouseButton1Click:Connect(function()
+            local char = player.Character
+            if char and char:FindFirstChild("HumanoidRootPart") then
+                char.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(2.026, 4, 9.497))
+            end
+        end)
+
+        local autoToggle = Instance.new("TextButton", rightContent)
+        autoToggle.Size = UDim2.new(0, 150, 0, 35)
+        autoToggle.Position = UDim2.new(0, 170, 0, 10)
+        autoToggle.BackgroundColor3 = Color3.fromRGB(120, 0, 0)
+        autoToggle.TextColor3 = Color3.new(1, 1, 1)
+        autoToggle.Font = Enum.Font.Gotham
+        autoToggle.TextSize = 14
+        autoToggle.Text = "Auto Save: OFF"
+        autoToggle.MouseButton1Click:Connect(function()
+            autoSaveEnabled = not autoSaveEnabled
+            autoToggle.Text = "Auto Save: " .. (autoSaveEnabled and "ON" or "OFF")
+        end)
+
+    elseif cat == "Bring Items" then
+        local bringBtn = Instance.new("TextButton", rightContent)
+        bringBtn.Size = UDim2.new(0, 150, 0, 35)
+        bringBtn.Position = UDim2.new(0, 10, 0, 10)
+        bringBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+        bringBtn.TextColor3 = Color3.new(1,1,1)
+        bringBtn.Font = Enum.Font.Gotham
+        bringBtn.TextSize = 14
+        bringBtn.Text = "Bring Food"
+        bringBtn.MouseButton1Click:Connect(function()
+            local foodNames = {
+                "Carrot", "Corn", "Pumpkin", "Apple", "Morsel", "cooked Morsel",
+                "Steak", "cooked Steak", "Cake", "Chili", "Stew", "Hearty Stew"
+            }
+            local char = player.Character
+            if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+            local hrpPos = char.HumanoidRootPart.Position
+
+            coroutine.wrap(function()
+                for _, obj in ipairs(workspace:GetDescendants()) do
+                    if table.find(foodNames, obj.Name) then
+                        local partToMove
+                        if obj:IsA("Model") then
+                            partToMove = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                        elseif obj:IsA("BasePart") then
+                            partToMove = obj
+                        end
+                        if partToMove then
+                            partToMove.CFrame = CFrame.new(hrpPos + Vector3.new(math.random(-3,3), 1, math.random(-3,3)))
+                            task.wait(0.01)
+                        end
+                    end
+                end
+            end)()
+        end)
+
+        local bringLogsBtn = Instance.new("TextButton", rightContent)
+        bringLogsBtn.Size = UDim2.new(0, 150, 0, 35)
+        bringLogsBtn.Position = UDim2.new(0, 170, 0, 10)
+        bringLogsBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+        bringLogsBtn.TextColor3 = Color3.new(1, 1, 1)
+        bringLogsBtn.Font = Enum.Font.Gotham
+        bringLogsBtn.TextSize = 14
+        bringLogsBtn.Text = "Bring Logs"
+        bringLogsBtn.MouseButton1Click:Connect(function()
+            local logName = "Log"
+            local char = player.Character
+            if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+            local hrpPos = char.HumanoidRootPart.Position
+
+            coroutine.wrap(function()
+                for _, obj in ipairs(workspace:GetDescendants()) do
+                    if obj.Name == logName then
+                        local partToMove
+                        if obj:IsA("Model") then
+                            partToMove = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                        elseif obj:IsA("BasePart") then
+                            partToMove = obj
+                        end
+                        if partToMove then
+                            partToMove.CFrame = CFrame.new(hrpPos + Vector3.new(math.random(-3,3), 1, math.random(-3,3)))
+                            task.wait(0.01)
+                        end
+                    end
+                end
+            end)()
+        end)
+
+        local bringGearBtn = Instance.new("TextButton", rightContent)
+        bringGearBtn.Size = UDim2.new(0, 150, 0, 35)
+        bringGearBtn.Position = UDim2.new(0, 10, 0, 50)
+        bringGearBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+        bringGearBtn.TextColor3 = Color3.new(1, 1, 1)
+        bringGearBtn.Font = Enum.Font.Gotham
+        bringGearBtn.TextSize = 14
+        bringGearBtn.Text = "Bring Gear"
+        bringGearBtn.MouseButton1Click:Connect(function()
+            local gearItems = {
+                "UFO Scrap",
+                "Cultist Prototype",
+                "Cultist Experiment",
+                "Washing Machine",
+                "Old Car Engine",
+                "Metal Chair",
+                "Tyre",
+                "Broken Microwave",
+                "Broken Radio",
+                "Broken Fan",
+                "UFO Component",
+                "UFO Junk",
+                "Sheet Metal",
+                "Bolt"
+            }
+            local char = player.Character
+            if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+            local hrpPos = char.HumanoidRootPart.Position
+
+            coroutine.wrap(function()
+                for _, obj in ipairs(workspace:GetDescendants()) do
+                    if table.find(gearItems, obj.Name) then
+                        local partToMove
+                        if obj:IsA("Model") then
+                            partToMove = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                        elseif obj:IsA("BasePart") then
+                            partToMove = obj
+                        end
+                        if partToMove then
+                            partToMove.CFrame = CFrame.new(hrpPos + Vector3.new(math.random(-3,3), 1, math.random(-3,3)))
+                            task.wait(0.01)
+                        end
+                    end
+                end
+            end)()
+        end)
+
+-- Bring Fuel
+local bringFuelBtn = Instance.new("TextButton", rightContent)
+bringFuelBtn.Size = UDim2.new(0, 150, 0, 35)
+bringFuelBtn.Position = UDim2.new(0, 170, 0, 50) -- place-le sous "Bring Log"
+bringFuelBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+bringFuelBtn.TextColor3 = Color3.new(1, 1, 1)
+bringFuelBtn.Font = Enum.Font.Gotham
+bringFuelBtn.TextSize = 14
+bringFuelBtn.Text = "Bring Fuel"
+
+bringFuelBtn.MouseButton1Click:Connect(function()
+    local char = player.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    local hrp = char.HumanoidRootPart
+
+    local keywords = {
+        "corpse", "sapling", "alien log", "chair",
+        "coal", "fuel canister", "oil barrel", "biofuel"
+    }
+
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("BasePart") or obj:IsA("Model") then
+            local name = obj.Name:lower()
+            for _, keyword in ipairs(keywords) do
+                if name:find(keyword) then
+                    local part = obj:IsA("Model") and obj:FindFirstChildWhichIsA("BasePart") or obj
+                    if part then
+                        part.CFrame = hrp.CFrame + Vector3.new(math.random(-5,5), 0, math.random(-5,5))
+                    end
+                    break
+                end
+            end
+        end
+    end
+end)
+ 
+elseif cat == "Auto" then
+    local player = game.Players.LocalPlayer
+    local RunService = game:GetService("RunService")
+
+    local autoPlantSaplings = false
+
+    -- Fonction pour trouver tous les saplings au sol dans Workspace
+    local function getSaplingsOnGround()
+        local saplings = {}
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj.Name:lower():find("sapling") and obj:IsA("BasePart") then
+                table.insert(saplings, obj)
+            end
+        end
+        return saplings
+    end
+
+    -- Fonction pour simuler planter un sapling (interaction)
+    local function plantSapling(sapling)
+        if not sapling or not sapling.Parent then return end
+
+        local char = player.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            local hrp = char.HumanoidRootPart
+            local targetPos = sapling.Position + Vector3.new(0, 3, 0) -- un peu au-dessus
+
+            hrp.CFrame = CFrame.new(targetPos)
+
+            task.wait(0.3)
+
+            local clickDet = sapling:FindFirstChildOfClass("ClickDetector")
+            if clickDet then
+                clickDet:FireClick(player)
+            else
+                print("Pas de ClickDetector trouvé sur sapling, gérer l'interaction manuellement.")
+            end
+
+            task.wait(1)
+        end
+    end
+
+elseif cat == "Auto" then
+    local player = game.Players.LocalPlayer
+    local autoPlantSaplings = false
+
+    -- Fonction pour détecter les saplings au sol
+    local function getSaplingsOnGround()
+        local saplings = {}
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("BasePart") and obj.Name:lower():find("sapling") then
+                table.insert(saplings, obj)
+            end
+        end
+        return saplings
+    end
+
+    -- Fonction pour simuler plantation
+    local function plantSapling(sapling)
+        local char = player.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            char.HumanoidRootPart.CFrame = CFrame.new(sapling.Position + Vector3.new(0, 3, 0))
+            task.wait(0.2)
+            local click = sapling:FindFirstChildWhichIsA("ClickDetector", true)
+            if click then
+                click:FireClick(player)
+            end
+        end
+    end
+
+    -- Boucle automatique
+    task.spawn(function()
+        while true do
+            if autoPlantSaplings then
+                local saplings = getSaplingsOnGround()
+                for _, s in ipairs(saplings) do
+                    plantSapling(s)
+                end
+            end
+            task.wait(5)
+        end
+    end)
+
+    -- BOUTON AJOUTÉ DANS LE MENU EXISTANT
+    local plantBtn = Instance.new("TextButton")
+    plantBtn.Size = UDim2.new(0, 200, 0, 35)
+    plantBtn.Position = UDim2.new(0, 10, 0, 10) -- ajuste selon besoin
+    plantBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+    plantBtn.TextColor3 = Color3.new(1, 1, 1)
+    plantBtn.Font = Enum.Font.GothamBold
+    plantBtn.TextSize = 16
+    plantBtn.Text = "Auto Plant Saplings: OFF"
+    plantBtn.Parent = rightContent -- ← TRÈS IMPORTANT
+
+    plantBtn.MouseButton1Click:Connect(function()
+        autoPlantSaplings = not autoPlantSaplings
+        plantBtn.Text = "Auto Plant Saplings: " .. (autoPlantSaplings and "ON" or "OFF")
+        plantBtn.BackgroundColor3 = autoPlantSaplings and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
+    end)
+
+    elseif cat == "Settings" then
+        local devLabel = Instance.new("TextLabel", rightContent)
+        devLabel.Size = UDim2.new(1, -20, 0, 30)
+        devLabel.Position = UDim2.new(0, 10, 0, 10)
+        devLabel.BackgroundTransparency = 1
+        devLabel.TextColor3 = Color3.new(1, 1, 1)
+        devLabel.Font = Enum.Font.GothamBold
+        devLabel.TextSize = 18
+        devLabel.Text = "Developer : skyy"
+
+        local linkLabel = Instance.new("TextLabel", rightContent)
+        linkLabel.Size = UDim2.new(1, -20, 0, 30)
+        linkLabel.Position = UDim2.new(0, 10, 0, 45)
+        linkLabel.BackgroundTransparency = 1
+        linkLabel.TextColor3 = Color3.new(1, 1, 1)
+        linkLabel.Font = Enum.Font.Gotham
+        linkLabel.TextSize = 16
+        linkLabel.Text = "https://discord.gg/vtzYXtraXR"
+
+        local infoLabel = Instance.new("TextLabel", rightContent)
+        infoLabel.Size = UDim2.new(1, -20, 0, 30)
+        infoLabel.Position = UDim2.new(0, 10, 0, 80)
+        infoLabel.BackgroundTransparency = 1
+        infoLabel.TextColor3 = Color3.new(1, 1, 1)
+        infoLabel.Font = Enum.Font.Gotham
+        infoLabel.TextSize = 14
+        infoLabel.Text = "G key open/close menu"
+
+        local killBtn = Instance.new("TextButton", rightContent)
+        killBtn.Size = UDim2.new(0, 200, 0, 35)
+        killBtn.Position = UDim2.new(0, 88, 0, 120)
+        killBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 0)
+        killBtn.TextColor3 = Color3.new(1, 1, 1)
+        killBtn.Font = Enum.Font.GothamBold
+        killBtn.TextSize = 14
+        killBtn.Text = "KILL MENU"
+        killBtn.MouseButton1Click:Connect(function()
+            gui:Destroy()
+        end)
+    end
+end
+
+
+    for i, name in ipairs(categories) do
+        local btn = Instance.new("TextButton", leftPanel)
+        btn.Size = UDim2.new(1, 0, 0, 30)
+        btn.Position = UDim2.new(0, 0, 0, (i - 1) * 30)
+        btn.BackgroundColor3 = Color3.fromRGB(120, 0, 0)
+        btn.TextColor3 = Color3.new(1, 1, 1)
+        btn.Font = Enum.Font.Gotham
+        btn.TextSize = 14
+        btn.Text = name
+        btn.MouseButton1Click:Connect(function()
+            showCategory(name)
+        end)
+    end
+end
+
+-- Interface Clé (ancienne version + compact)
+local keyFrame = Instance.new("Frame", gui)
+keyFrame.Size = UDim2.new(0, 260, 0, 130)
+keyFrame.Position = UDim2.new(0.5, -130, 0.5, -65)
+keyFrame.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+
+local title = Instance.new("TextLabel", keyFrame)
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "SkyyScripts - Key System"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 16
+
+local textBox = Instance.new("TextBox", keyFrame)
+textBox.Size = UDim2.new(1, -20, 0, 35)
+textBox.Position = UDim2.new(0, 10, 0, 40)
+textBox.PlaceholderText = "Enter key here"
+textBox.Text = ""
+textBox.Font = Enum.Font.Gotham
+textBox.TextSize = 14
+textBox.BackgroundColor3 = Color3.fromRGB(120, 0, 0)
+textBox.TextColor3 = Color3.new(1, 1, 1)
+
+local submitBtn = Instance.new("TextButton", keyFrame)
+submitBtn.Size = UDim2.new(1, -20, 0, 35)
+submitBtn.Position = UDim2.new(0, 10, 0, 80)
+submitBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+submitBtn.TextColor3 = Color3.new(1, 1, 1)
+submitBtn.Font = Enum.Font.Gotham
+submitBtn.TextSize = 14
+submitBtn.Text = "Validate Key"
+
+submitBtn.MouseButton1Click:Connect(function()
+    if validateKey(textBox.Text) then
+        keyFrame:Destroy()
+        showMainMenu()
+        menuVisible = true
+    else
+        textBox.Text = ""
+        textBox.PlaceholderText = "Wrong key, try again"
+    end
+end)
+
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == toggleKey and menuVisible then
+        if mainFrame then
+            mainFrame.Visible = not mainFrame.Visible
+        end
+    end
+end)
