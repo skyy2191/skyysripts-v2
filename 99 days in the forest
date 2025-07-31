@@ -453,64 +453,58 @@ coroutine.wrap(function()
     end
 end)()
 
--- Auto Save Toggle
-local autoSave = false
-local lastSaveTime = 0
-local campfirePosition = Vector3.new(-0.16, 13.20, -0.03)
+-- Création du bouton Auto Save
+local autoSaveButton = Instance.new("TextButton")
+autoSaveButton.Name = "AutoSaveButton"
+autoSaveButton.Parent = frame  -- Remplacer 'frame' par le parent approprié du GUI
+autoSaveButton.Size = UDim2.new(0, 200, 0, 30)  -- Ajuster la taille si besoin
+autoSaveButton.Position = UDim2.new(0, 0, 0, previousButtonY + 40) -- Placer sous le bouton Auto Plant Sapling
+autoSaveButton.BackgroundColor3 = Color3.fromRGB(139, 0, 0)  -- Rouge foncé
+autoSaveButton.TextColor3 = Color3.fromRGB(255, 255, 255)    -- Texte blanc
+autoSaveButton.Font = Enum.Font.Gotham
+autoSaveButton.Text = "Auto Save: OFF"
+autoSaveButton.TextSize = 14
 
-local autoSaveBtn = Instance.new("TextButton", rightContent)
-autoSaveBtn.Size = UDim2.new(0, 160, 0, 30)
-autoSaveBtn.Position = UDim2.new(0, 10, 0, 50) -- Place sous le bouton Auto Plant Sapling
-autoSaveBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
-autoSaveBtn.TextColor3 = Color3.new(1, 1, 1)
-autoSaveBtn.Font = Enum.Font.Gotham
-autoSaveBtn.TextSize = 14
-autoSaveBtn.Text = "Auto Save: OFF"
+-- Variables de contrôle
+local autoSaveEnabled = false
+local lastSave = 0
 
-autoSaveBtn.MouseButton1Click:Connect(function()
-	autoSave = not autoSave
-	autoSaveBtn.Text = "Auto Save: " .. (autoSave and "ON" or "OFF")
+-- Basculer l'état au clic (ON/OFF) et mettre à jour le texte:contentReference[oaicite:12]{index=12}
+autoSaveButton.MouseButton1Click:Connect(function()
+    autoSaveEnabled = not autoSaveEnabled
+    autoSaveButton.Text = "Auto Save: " .. (autoSaveEnabled and "ON" or "OFF")
 end)
 
--- Fonction de téléportation avec notification
-local function teleportToCampfire()
-	local player = game.Players.LocalPlayer
-	local char = player.Character
-	if char and char:FindFirstChild("HumanoidRootPart") then
-		char:MoveTo(campfirePosition)
-
-		pcall(function()
-			game:GetService("StarterGui"):SetCore("SendNotification", {
-				Title = "SkyyScripts",
-				Text = "You have been saved by Auto Save",
-				Duration = 5
-			})
-		end)
-	end
+-- Fonction pour configurer la surveillance de santé sur le personnage du joueur
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local function onCharacterAdded(character)
+    local humanoid = character:WaitForChild("Humanoid")
+    humanoid.HealthChanged:Connect(function(health)
+        if not autoSaveEnabled then return end
+        -- Si vie <=25% de MaxHealth, et cooldown écoulé:contentReference[oaicite:13]{index=13}
+        if health <= humanoid.MaxHealth * 0.25 then
+            local now = tick()
+            if now - lastSave >= 5 then
+                lastSave = now
+                -- Téléportation au campfire (Vector3 donné):contentReference[oaicite:14]{index=14}
+                character:PivotTo(CFrame.new(Vector3.new(-0.16, 13.20, -0.03)))
+                -- Notification Roblox en bas de l'écran:contentReference[oaicite:15]{index=15}
+                game:GetService("StarterGui"):SetCore("SendNotification", {
+                    Title = "SkyyScripts",
+                    Text = "You have been saved by Auto Save",
+                    Duration = 5
+                })
+            end
+        end
+    end)
 end
 
--- Détection de santé et auto-save
-task.spawn(function()
-	while true do
-		task.wait(1)
-		if autoSave then
-			local player = game.Players.LocalPlayer
-			local char = player.Character
-			if char and char:FindFirstChild("Humanoid") then
-				local humanoid = char:FindFirstChildOfClass("Humanoid")
-				if humanoid and humanoid.Health > 0 then
-					local maxHealth = humanoid.MaxHealth
-					if humanoid.Health <= maxHealth * 0.25 and tick() - lastSaveTime >= 5 then
-						lastSaveTime = tick()
-						teleportToCampfire()
-					end
-				end
-			end
-		end
-	end
-end)
-
-
+-- Connexion aux événements de personnage
+player.CharacterAdded:Connect(onCharacterAdded)
+if player.Character then
+    onCharacterAdded(player.Character)
+end
 
     elseif cat == "Teleport" then
         local tpBtn = Instance.new("TextButton", rightContent)
