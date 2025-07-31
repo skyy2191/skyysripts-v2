@@ -453,28 +453,44 @@ coroutine.wrap(function()
     end
 end)()
 
--- Création du bouton Auto Save
+-- BOUTON AUTO PLANT SAPLING
+local autoPlant = false
+local saplingButton = Instance.new("TextButton")
+saplingButton.Name = "AutoPlantButton"
+saplingButton.Parent = rightContent
+saplingButton.Size = UDim2.new(0, 160, 0, 30)
+saplingButton.Position = UDim2.new(0, 10, 0, 10)
+saplingButton.BackgroundColor3 = Color3.fromRGB(34, 139, 34)
+saplingButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+saplingButton.Font = Enum.Font.Gotham
+saplingButton.Text = "Auto Plant Sapling: OFF"
+saplingButton.TextSize = 14
+
+saplingButton.MouseButton1Click:Connect(function()
+	autoPlant = not autoPlant
+	saplingButton.Text = "Auto Plant Sapling: " .. (autoPlant and "ON" or "OFF")
+end)
+
+-- BOUTON AUTO SAVE
+local autoSaveEnabled = false
+local lastSave = 0
 local autoSaveButton = Instance.new("TextButton")
 autoSaveButton.Name = "AutoSaveButton"
-autoSaveButton.Parent = rightContent -- <- Corrigé ici
+autoSaveButton.Parent = rightContent
 autoSaveButton.Size = UDim2.new(0, 160, 0, 30)
-autoSaveButton.Position = UDim2.new(0, 10, 0, 50) -- <- Corrigé ici (ajusté si nécessaire)
+autoSaveButton.Position = UDim2.new(0, 10, 0, 50) -- Positionnée juste en dessous du bouton précédent
 autoSaveButton.BackgroundColor3 = Color3.fromRGB(139, 0, 0)
 autoSaveButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 autoSaveButton.Font = Enum.Font.Gotham
 autoSaveButton.Text = "Auto Save: OFF"
 autoSaveButton.TextSize = 14
 
--- Variables de contrôle
-local autoSaveEnabled = false
-local lastSave = 0
-
 autoSaveButton.MouseButton1Click:Connect(function()
 	autoSaveEnabled = not autoSaveEnabled
 	autoSaveButton.Text = "Auto Save: " .. (autoSaveEnabled and "ON" or "OFF")
 end)
 
--- Fonction pour détecter le personnage et surveiller la vie
+-- DÉTECTION DE VIE + TÉLÉPORTATION
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
@@ -486,7 +502,6 @@ local function onCharacterAdded(character)
 			local now = tick()
 			if now - lastSave >= 5 then
 				lastSave = now
-				-- Assure qu'on peut téléporter (PrimaryPart nécessaire)
 				if not character.PrimaryPart then
 					character.PrimaryPart = character:FindFirstChild("HumanoidRootPart")
 				end
@@ -505,7 +520,6 @@ local function onCharacterAdded(character)
 	end)
 end
 
--- Connexion aux personnages
 player.CharacterAdded:Connect(onCharacterAdded)
 if player.Character then
 	onCharacterAdded(player.Character)
