@@ -113,26 +113,44 @@ local function showCategory(cat)
             end
         end)
 
--- AUTO SAVE SYSTEM (TP to campfire if low HP)
-local autoSaveEnabled = true
+-- AUTO SAVE SYSTEM
+local autoSave = false
+
+-- Bouton Auto Save
+local autoSaveBtn = Instance.new("TextButton", rightContent)
+autoSaveBtn.Size = UDim2.new(0, 160, 0, 30)
+autoSaveBtn.Position = UDim2.new(0, 350, 0, 10) -- ajuste si besoin
+autoSaveBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+autoSaveBtn.TextColor3 = Color3.new(1, 1, 1)
+autoSaveBtn.Font = Enum.Font.Gotham
+autoSaveBtn.TextSize = 14
+autoSaveBtn.Text = "Auto Save: OFF"
+
+autoSaveBtn.MouseButton1Click:Connect(function()
+	autoSave = not autoSave
+	autoSaveBtn.Text = "Auto Save: " .. (autoSave and "ON" or "OFF")
+end)
+
+-- Campfire position
 local campfirePosition = Vector3.new(-0.16, 13.20, -0.03)
 
+-- Boucle de vérification Auto Save
 coroutine.wrap(function()
-    while true do
-        task.wait(1)
-        if autoSaveEnabled then
-            local player = game.Players.LocalPlayer
-            if player and player.Character then
-                local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
-                if humanoid and humanoid.Health > 0 then
-                    local maxHealth = humanoid.MaxHealth
-                    if humanoid.Health <= (maxHealth * 0.25) then
-                        player.Character:SetPrimaryPartCFrame(CFrame.new(campfirePosition))
-                    end
-                end
-            end
-        end
-    end
+	while true do
+		task.wait(1)
+		if autoSave then
+			local player = game.Players.LocalPlayer
+			if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+				local humanoid = player.Character:FindFirstChildWhichIsA("Humanoid")
+				if humanoid and humanoid.Health > 0 then
+					local maxHealth = humanoid.MaxHealth
+					if humanoid.Health <= (maxHealth * 0.25) then
+						player.Character:MoveTo(campfirePosition)
+					end
+				end
+			end
+		end
+	end
 end)()
 
     elseif cat == "Bring Items" then
