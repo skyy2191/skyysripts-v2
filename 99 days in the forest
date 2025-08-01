@@ -1,4 +1,4 @@
--- SkyyScripts GUI pour 99 Nights in the Forest 🔦
+-- SkyyScripts GUI pour 99 Nights in the Forest 🔦 (Version Corrigée)
 local player = game.Players.LocalPlayer
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "SkyyScriptsGui"
@@ -8,7 +8,14 @@ local mainFrame, rightContent
 local toggleKey = Enum.KeyCode.G
 local key = "1234"
 local menuVisible = false
+
+-- Variables globales corrigées
 local autoSaveEnabled = false
+local autoPlant = false
+local plantedSaplings = {} -- Variable manquante ajoutée
+local lastSaveTime = 0
+local saveCooldown = 5
+local campfireCFrame = CFrame.new(Vector3.new(2.026, 4, 9.497))
 
 local function validateKey(inputKey)
     return inputKey == key
@@ -95,553 +102,617 @@ local function showMainMenu()
         end
     end
 
-local function showCategory(cat)
-    clearRight()
-    if cat == "Main" then
-        local tpBtn = Instance.new("TextButton", rightContent)
-        tpBtn.Size = UDim2.new(0, 150, 0, 35)
-        tpBtn.Position = UDim2.new(0, 10, 0, 10)
-        tpBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
-        tpBtn.TextColor3 = Color3.new(1, 1, 1)
-        tpBtn.Font = Enum.Font.Gotham
-        tpBtn.TextSize = 14
-        tpBtn.Text = "TP to Campfire"
-        tpBtn.MouseButton1Click:Connect(function()
-            local char = player.Character
-            if char and char:FindFirstChild("HumanoidRootPart") then
-                char.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(2.026, 4, 9.497))
-            end
-        end)
-
-    elseif cat == "Bring Items" then
-        local bringBtn = Instance.new("TextButton", rightContent)
-        bringBtn.Size = UDim2.new(0, 150, 0, 35)
-        bringBtn.Position = UDim2.new(0, 10, 0, 10)
-        bringBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
-        bringBtn.TextColor3 = Color3.new(1,1,1)
-        bringBtn.Font = Enum.Font.Gotham
-        bringBtn.TextSize = 14
-        bringBtn.Text = "Bring Food/heal"
-        bringBtn.MouseButton1Click:Connect(function()
-            local foodNames = {
-                "Carrot", "Corn", "Pumpkin", "Apple", "Morsel", "cooked Morsel",
-                "Steak", "cooked Steak", "Cake", "Chili", "Stew", "Hearty Stew",
-                "Bandage", "Medkit"
-            }
-            local char = player.Character
-            if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-            local hrpPos = char.HumanoidRootPart.Position
-
-            coroutine.wrap(function()
-                for _, obj in ipairs(workspace:GetDescendants()) do
-                    if table.find(foodNames, obj.Name) then
-                        local partToMove
-                        if obj:IsA("Model") then
-                            partToMove = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                        elseif obj:IsA("BasePart") then
-                            partToMove = obj
-                        end
-                        if partToMove then
-                            partToMove.CFrame = CFrame.new(hrpPos + Vector3.new(math.random(-3,3), 1, math.random(-3,3)))
-                            task.wait(0.01)
-                        end
-                    end
-                end
-            end)()
-        end)
-
-        local bringLogsBtn = Instance.new("TextButton", rightContent)
-        bringLogsBtn.Size = UDim2.new(0, 150, 0, 35)
-        bringLogsBtn.Position = UDim2.new(0, 170, 0, 10)
-        bringLogsBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
-        bringLogsBtn.TextColor3 = Color3.new(1, 1, 1)
-        bringLogsBtn.Font = Enum.Font.Gotham
-        bringLogsBtn.TextSize = 14
-        bringLogsBtn.Text = "Bring Logs"
-        bringLogsBtn.MouseButton1Click:Connect(function()
-            local logName = "Log"
-            local char = player.Character
-            if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-            local hrpPos = char.HumanoidRootPart.Position
-
-            coroutine.wrap(function()
-                for _, obj in ipairs(workspace:GetDescendants()) do
-                    if obj.Name == logName then
-                        local partToMove
-                        if obj:IsA("Model") then
-                            partToMove = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                        elseif obj:IsA("BasePart") then
-                            partToMove = obj
-                        end
-                        if partToMove then
-                            partToMove.CFrame = CFrame.new(hrpPos + Vector3.new(math.random(-3,3), 1, math.random(-3,3)))
-                            task.wait(0.01)
-                        end
-                    end
-                end
-            end)()
-        end)
-
-        local bringGearBtn = Instance.new("TextButton", rightContent)
-        bringGearBtn.Size = UDim2.new(0, 150, 0, 35)
-        bringGearBtn.Position = UDim2.new(0, 10, 0, 50)
-        bringGearBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
-        bringGearBtn.TextColor3 = Color3.new(1, 1, 1)
-        bringGearBtn.Font = Enum.Font.Gotham
-        bringGearBtn.TextSize = 14
-        bringGearBtn.Text = "Bring Gear"
-        bringGearBtn.MouseButton1Click:Connect(function()
-            local gearItems = {
-                "UFO Scrap",
-                "Cultist Prototype",
-                "Cultist Experiment",
-                "Washing Machine",
-                "Old Car Engine",
-                "Metal Chair",
-                "Tyre",
-                "Broken Microwave",
-                "Broken Radio",
-                "Broken Fan",
-                "UFO Component",
-                "UFO Junk",
-                "Sheet Metal",
-                "Bolt",
-                "Cultist Gem",
-                "Forest Gem"
-            }
-            local char = player.Character
-            if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-            local hrpPos = char.HumanoidRootPart.Position
-
-            coroutine.wrap(function()
-                for _, obj in ipairs(workspace:GetDescendants()) do
-                    if table.find(gearItems, obj.Name) then
-                        local partToMove
-                        if obj:IsA("Model") then
-                            partToMove = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                        elseif obj:IsA("BasePart") then
-                            partToMove = obj
-                        end
-                        if partToMove then
-                            partToMove.CFrame = CFrame.new(hrpPos + Vector3.new(math.random(-3,3), 1, math.random(-3,3)))
-                            task.wait(0.01)
-                        end
-                    end
-                end
-            end)()
-        end)
-
--- Bring Fuel
-local bringFuelBtn = Instance.new("TextButton", rightContent)
-bringFuelBtn.Size = UDim2.new(0, 150, 0, 35)
-bringFuelBtn.Position = UDim2.new(0, 170, 0, 50) -- place-le sous "Bring Log"
-bringFuelBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
-bringFuelBtn.TextColor3 = Color3.new(1, 1, 1)
-bringFuelBtn.Font = Enum.Font.Gotham
-bringFuelBtn.TextSize = 14
-bringFuelBtn.Text = "Bring Fuel"
-
-bringFuelBtn.MouseButton1Click:Connect(function()
-    local char = player.Character
-    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-    local hrp = char.HumanoidRootPart
-
-    local keywords = {
-        "corpse", "sapling", "alien log", "chair",
-        "coal", "fuel canister", "oil barrel", "biofuel"
-    }
-
-    for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("BasePart") or obj:IsA("Model") then
-            local name = obj.Name:lower()
-            for _, keyword in ipairs(keywords) do
-                if name:find(keyword) then
-                    local part = obj:IsA("Model") and obj:FindFirstChildWhichIsA("BasePart") or obj
-                    if part then
-                        part.CFrame = hrp.CFrame + Vector3.new(math.random(-5,5), 0, math.random(-5,5))
-                    end
-                    break
-                end
-            end
-        end
-    end
-end)
-
-local bringOtherBtn = Instance.new("TextButton", rightContent)
-bringOtherBtn.Size = UDim2.new(0, 150, 0, 35)
-bringOtherBtn.Position = UDim2.new(0, 10, 0, 90) -- sous "Bring Fuel"
-bringOtherBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
-bringOtherBtn.TextColor3 = Color3.new(1, 1, 1)
-bringOtherBtn.Font = Enum.Font.Gotham
-bringOtherBtn.TextSize = 14
-bringOtherBtn.Text = "Bring Other"
-
-bringOtherBtn.MouseButton1Click:Connect(function()
-    local otherItems = {
-        "Chili Seeds", "Flower Seeds", "Berry Seeds", "Firefly Seeds",
-        "Old Sack", "Good Sack", "Giant Sack",
-        "Strong Flashlight", "Old Flashlight",
-        "Bunny Foot", "Wolf Pelt", "Alpha Wolf Pelt", "Bear Pelt"
-    }
-    local char = player.Character
-    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-    local hrpPos = char.HumanoidRootPart.Position
-
-    coroutine.wrap(function()
-        for _, obj in ipairs(workspace:GetDescendants()) do
-            if table.find(otherItems, obj.Name) then
-                local partToMove
-                if obj:IsA("Model") then
-                    partToMove = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                elseif obj:IsA("BasePart") then
-                    partToMove = obj
-                end
-                if partToMove then
-                    partToMove.CFrame = CFrame.new(hrpPos + Vector3.new(math.random(-3,3), 1, math.random(-3,3)))
-                    task.wait(0.01)
-                end
-            end
-        end
-    end)()
-end)
-
-local bringWeaponBtn = Instance.new("TextButton", rightContent)
-bringWeaponBtn.Size = UDim2.new(0, 150, 0, 35)
-bringWeaponBtn.Position = UDim2.new(0, 170, 0, 90) -- juste en dessous du bouton Bring Fuel
-bringWeaponBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
-bringWeaponBtn.TextColor3 = Color3.new(1, 1, 1)
-bringWeaponBtn.Font = Enum.Font.Gotham
-bringWeaponBtn.TextSize = 14
-bringWeaponBtn.Text = "Bring Weapon"
-
-bringWeaponBtn.MouseButton1Click:Connect(function()
-    local weaponArmorAmmoItems = {
-        "Leather Body", "Iron Body", "Thorn Body", "Riot Shield",
-        "Alien Armor",
-        "Spear", "Morningstar", "Katana", "Laser Sword",
-        "Revolver", "Rifle", "Tactical Shotgun", "Kunai", "Ray Gun", "Laser Cannon",
-        "Revolver Ammo", "Rifle Ammo", "Shotgun Ammo"
-    }
-    local char = player.Character
-    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-    local hrpPos = char.HumanoidRootPart.Position
-
-    coroutine.wrap(function()
-        for _, obj in ipairs(workspace:GetDescendants()) do
-            if table.find(weaponArmorAmmoItems, obj.Name) then
-                local partToMove
-                if obj:IsA("Model") then
-                    partToMove = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                elseif obj:IsA("BasePart") then
-                    partToMove = obj
-                end
-                if partToMove then
-                    partToMove.CFrame = CFrame.new(hrpPos + Vector3.new(math.random(-3,3), 1, math.random(-3,3)))
-                    task.wait(0.01)
-                end
-            end
-        end
-    end)()
-end)
-
-elseif cat == "Auto" then
-local autoPlant = false
-
-local plantBtn = Instance.new("TextButton", rightContent)
-plantBtn.Size = UDim2.new(0, 160, 0, 30)
-plantBtn.Position = UDim2.new(0, 10, 0, 10)
-plantBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
-plantBtn.TextColor3 = Color3.new(1, 1, 1)
-plantBtn.Font = Enum.Font.Gotham
-plantBtn.TextSize = 14
-plantBtn.Text = "Auto Plant Sapling: OFF"
-
-plantBtn.MouseButton1Click:Connect(function()
-    autoPlant = not autoPlant
-    plantBtn.Text = "Auto Plant Sapling: " .. (autoPlant and "ON" or "OFF")
-end)
-
--- Boucle de plantation
-task.spawn(function()
-    while true do
-        task.wait(2) -- petit délai pour éviter le freeze
-        if autoPlant then
-            for _, obj in ipairs(workspace:GetDescendants()) do
-                if obj.Name == "Sapling" and obj:IsA("Model") then
-                    local prompt = obj:FindFirstChildWhichIsA("ProximityPrompt", true)
-                    if prompt then
-                        fireproximityprompt(prompt)
-                        task.wait(0.2)
-                    end
-                end
-            end
-        end
-    end
-end)
-
-local autoPlant = false
-
-local plantBtn = Instance.new("TextButton", rightContent)
-plantBtn.Size = UDim2.new(0, 160, 0, 30)
-plantBtn.Position = UDim2.new(0, 10, 0, 10)
-plantBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
-plantBtn.TextColor3 = Color3.new(1, 1, 1)
-plantBtn.Font = Enum.Font.Gotham
-plantBtn.TextSize = 14
-plantBtn.Text = "Auto Plant Sapling: OFF"
-
-plantBtn.MouseButton1Click:Connect(function()
-    autoPlant = not autoPlant
-    plantBtn.Text = "Auto Plant Sapling: " .. (autoPlant and "ON" or "OFF")
-end)
-
--- Heal Campfire Button
-local healBtn = Instance.new("TextButton", rightContent)
-healBtn.Size = UDim2.new(0, 160, 0, 30)
-healBtn.Position = UDim2.new(0, 180, 0, 10)
-healBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
-healBtn.TextColor3 = Color3.new(1, 1, 1)
-healBtn.Font = Enum.Font.Gotham
-healBtn.TextSize = 14
-healBtn.Text = "Heal Campfire"
-
-local campfirePosition = Vector3.new(-0.16, 13.20, -0.03)
-
-healBtn.MouseButton1Click:Connect(function()
-    local namesToTeleport = {
-        ["corpse"] = true,
-        ["sapling"] = true,
-        ["alien log"] = true,
-        ["chair"] = true,
-        ["coal"] = true,
-        ["fuel canister"] = true,
-        ["oil barrel"] = true,
-        ["biofuel"] = true,
-        ["log"] = true,
-    }
-
-    for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("Model") then
-            local name = obj.Name:lower()
-            if name:find("log") or namesToTeleport[name] then
-                local primary = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                if primary then
-                    primary.CFrame = CFrame.new(campfirePosition + Vector3.new(math.random(-3, 3), 1, math.random(-3, 3)))
-                end
-            end
-        end
-    end
-end)
-
-
--- Boucle de plantation améliorée
-coroutine.wrap(function()
-    while true do
-        task.wait(1)
-        if autoPlant then
-            for _, obj in ipairs(workspace:GetDescendants()) do
-                if obj:IsA("Model") and obj.Name == "Item Sapling" and not plantedSaplings[obj] then
-                    local prompt = obj:FindFirstChildWhichIsA("ProximityPrompt", true)
-                    if prompt and prompt.Enabled then
-                        fireproximityprompt(prompt)
-                        plantedSaplings[obj] = true
-                        task.wait(0.2)
-                    end
-                end
-            end
-        end
-    end
-end)()
-
--- BOUTON AUTO PLANT SAPLING
-local autoPlant = false
-local saplingButton = Instance.new("TextButton")
-saplingButton.Name = "AutoPlantButton"
-saplingButton.Parent = rightContent
-saplingButton.Size = UDim2.new(0, 160, 0, 30)
-saplingButton.Position = UDim2.new(0, 10, 0, 10)
-saplingButton.BackgroundColor3 = Color3.fromRGB(34, 139, 34)
-saplingButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-saplingButton.Font = Enum.Font.Gotham
-saplingButton.Text = "Auto Plant Sapling: OFF"
-saplingButton.TextSize = 14
-
-saplingButton.MouseButton1Click:Connect(function()
-	autoPlant = not autoPlant
-	saplingButton.Text = "Auto Plant Sapling: " .. (autoPlant and "ON" or "OFF")
-end)
-
--- BOUTON AUTO SAVE
-    -- Bouton Auto Save
-    local autoSaveBtn = Instance.new("TextButton", rightContent)
-    autoSaveBtn.Size = UDim2.new(0, 160, 0, 30)
-    autoSaveBtn.Position = UDim2.new(0, 10, 0, 50)
-    autoSaveBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
-    autoSaveBtn.TextColor3 = Color3.new(1, 1, 1)
-    autoSaveBtn.Font = Enum.Font.Gotham
-    autoSaveBtn.TextSize = 14
-    autoSaveBtn.Text = "Auto Save: " .. (autoSaveEnabled and "ON" or "OFF")
-
-    autoSaveBtn.MouseButton1Click:Connect(function()
-        autoSaveEnabled = not autoSaveEnabled
-        autoSaveBtn.Text = "Auto Save: " .. (autoSaveEnabled and "ON" or "OFF")
-    end)
-
-    -- Système de détection de vie basse
-    player.CharacterAdded:Connect(function(character)
-        local humanoid = character:WaitForChild("Humanoid")
+    local function showCategory(cat)
+        clearRight()
         
-        humanoid.HealthChanged:Connect(function()
-            if autoSaveEnabled and humanoid.Health <= humanoid.MaxHealth * 0.25 then
-                local now = tick()
-                if now - lastSaveTime >= saveCooldown then
-                    lastSaveTime = now
+        if cat == "Main" then
+            local tpBtn = Instance.new("TextButton", rightContent)
+            tpBtn.Size = UDim2.new(0, 150, 0, 35)
+            tpBtn.Position = UDim2.new(0, 10, 0, 10)
+            tpBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            tpBtn.TextColor3 = Color3.new(1, 1, 1)
+            tpBtn.Font = Enum.Font.Gotham
+            tpBtn.TextSize = 14
+            tpBtn.Text = "TP to Campfire"
+            tpBtn.MouseButton1Click:Connect(function()
+                local char = player.Character
+                if char and char:FindFirstChild("HumanoidRootPart") then
+                    char.HumanoidRootPart.CFrame = campfireCFrame
+                end
+            end)
+
+        elseif cat == "Bring Items" then
+            -- Bring Food/heal
+            local bringBtn = Instance.new("TextButton", rightContent)
+            bringBtn.Size = UDim2.new(0, 150, 0, 35)
+            bringBtn.Position = UDim2.new(0, 10, 0, 10)
+            bringBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            bringBtn.TextColor3 = Color3.new(1,1,1)
+            bringBtn.Font = Enum.Font.Gotham
+            bringBtn.TextSize = 14
+            bringBtn.Text = "Bring Food/heal"
+            bringBtn.MouseButton1Click:Connect(function()
+                local foodNames = {
+                    "Carrot", "Corn", "Pumpkin", "Apple", "Morsel", "cooked Morsel",
+                    "Steak", "cooked Steak", "Cake", "Chili", "Stew", "Hearty Stew",
+                    "Bandage", "Medkit"
+                }
+                local char = player.Character
+                if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+                local hrpPos = char.HumanoidRootPart.Position
+
+                coroutine.wrap(function()
+                    for _, obj in ipairs(workspace:GetDescendants()) do
+                        if table.find(foodNames, obj.Name) then
+                            local partToMove
+                            if obj:IsA("Model") then
+                                partToMove = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                            elseif obj:IsA("BasePart") then
+                                partToMove = obj
+                            end
+                            if partToMove then
+                                partToMove.CFrame = CFrame.new(hrpPos + Vector3.new(math.random(-3,3), 1, math.random(-3,3)))
+                                task.wait(0.01)
+                            end
+                        end
+                    end
+                end)()
+            end)
+
+            -- Bring Logs
+            local bringLogsBtn = Instance.new("TextButton", rightContent)
+            bringLogsBtn.Size = UDim2.new(0, 150, 0, 35)
+            bringLogsBtn.Position = UDim2.new(0, 170, 0, 10)
+            bringLogsBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            bringLogsBtn.TextColor3 = Color3.new(1, 1, 1)
+            bringLogsBtn.Font = Enum.Font.Gotham
+            bringLogsBtn.TextSize = 14
+            bringLogsBtn.Text = "Bring Logs"
+            bringLogsBtn.MouseButton1Click:Connect(function()
+                local logName = "Log"
+                local char = player.Character
+                if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+                local hrpPos = char.HumanoidRootPart.Position
+
+                coroutine.wrap(function()
+                    for _, obj in ipairs(workspace:GetDescendants()) do
+                        if obj.Name == logName then
+                            local partToMove
+                            if obj:IsA("Model") then
+                                partToMove = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                            elseif obj:IsA("BasePart") then
+                                partToMove = obj
+                            end
+                            if partToMove then
+                                partToMove.CFrame = CFrame.new(hrpPos + Vector3.new(math.random(-3,3), 1, math.random(-3,3)))
+                                task.wait(0.01)
+                            end
+                        end
+                    end
+                end)()
+            end)
+
+            -- Bring Gear
+            local bringGearBtn = Instance.new("TextButton", rightContent)
+            bringGearBtn.Size = UDim2.new(0, 150, 0, 35)
+            bringGearBtn.Position = UDim2.new(0, 10, 0, 50)
+            bringGearBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            bringGearBtn.TextColor3 = Color3.new(1, 1, 1)
+            bringGearBtn.Font = Enum.Font.Gotham
+            bringGearBtn.TextSize = 14
+            bringGearBtn.Text = "Bring Gear"
+            bringGearBtn.MouseButton1Click:Connect(function()
+                local gearItems = {
+                    "UFO Scrap", "Cultist Prototype", "Cultist Experiment", "Washing Machine",
+                    "Old Car Engine", "Metal Chair", "Tyre", "Broken Microwave", "Broken Radio",
+                    "Broken Fan", "UFO Component", "UFO Junk", "Sheet Metal", "Bolt",
+                    "Cultist Gem", "Forest Gem"
+                }
+                local char = player.Character
+                if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+                local hrpPos = char.HumanoidRootPart.Position
+
+                coroutine.wrap(function()
+                    for _, obj in ipairs(workspace:GetDescendants()) do
+                        if table.find(gearItems, obj.Name) then
+                            local partToMove
+                            if obj:IsA("Model") then
+                                partToMove = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                            elseif obj:IsA("BasePart") then
+                                partToMove = obj
+                            end
+                            if partToMove then
+                                partToMove.CFrame = CFrame.new(hrpPos + Vector3.new(math.random(-3,3), 1, math.random(-3,3)))
+                                task.wait(0.01)
+                            end
+                        end
+                    end
+                end)()
+            end)
+
+            -- Bring Fuel
+            local bringFuelBtn = Instance.new("TextButton", rightContent)
+            bringFuelBtn.Size = UDim2.new(0, 150, 0, 35)
+            bringFuelBtn.Position = UDim2.new(0, 170, 0, 50)
+            bringFuelBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            bringFuelBtn.TextColor3 = Color3.new(1, 1, 1)
+            bringFuelBtn.Font = Enum.Font.Gotham
+            bringFuelBtn.TextSize = 14
+            bringFuelBtn.Text = "Bring Fuel"
+
+            bringFuelBtn.MouseButton1Click:Connect(function()
+                local char = player.Character
+                if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+                local hrp = char.HumanoidRootPart
+
+                local keywords = {
+                    "corpse", "sapling", "alien log", "chair",
+                    "coal", "fuel canister", "oil barrel", "biofuel"
+                }
+
+                for _, obj in ipairs(workspace:GetDescendants()) do
+                    if obj:IsA("BasePart") or obj:IsA("Model") then
+                        local name = obj.Name:lower()
+                        for _, keyword in ipairs(keywords) do
+                            if name:find(keyword) then
+                                local part = obj:IsA("Model") and obj:FindFirstChildWhichIsA("BasePart") or obj
+                                if part then
+                                    part.CFrame = hrp.CFrame + Vector3.new(math.random(-5,5), 0, math.random(-5,5))
+                                end
+                                break
+                            end
+                        end
+                    end
+                end
+            end)
+
+            -- Bring Other
+            local bringOtherBtn = Instance.new("TextButton", rightContent)
+            bringOtherBtn.Size = UDim2.new(0, 150, 0, 35)
+            bringOtherBtn.Position = UDim2.new(0, 10, 0, 90)
+            bringOtherBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            bringOtherBtn.TextColor3 = Color3.new(1, 1, 1)
+            bringOtherBtn.Font = Enum.Font.Gotham
+            bringOtherBtn.TextSize = 14
+            bringOtherBtn.Text = "Bring Other"
+
+            bringOtherBtn.MouseButton1Click:Connect(function()
+                local otherItems = {
+                    "Chili Seeds", "Flower Seeds", "Berry Seeds", "Firefly Seeds",
+                    "Old Sack", "Good Sack", "Giant Sack",
+                    "Strong Flashlight", "Old Flashlight",
+                    "Bunny Foot", "Wolf Pelt", "Alpha Wolf Pelt", "Bear Pelt"
+                }
+                local char = player.Character
+                if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+                local hrpPos = char.HumanoidRootPart.Position
+
+                coroutine.wrap(function()
+                    for _, obj in ipairs(workspace:GetDescendants()) do
+                        if table.find(otherItems, obj.Name) then
+                            local partToMove
+                            if obj:IsA("Model") then
+                                partToMove = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                            elseif obj:IsA("BasePart") then
+                                partToMove = obj
+                            end
+                            if partToMove then
+                                partToMove.CFrame = CFrame.new(hrpPos + Vector3.new(math.random(-3,3), 1, math.random(-3,3)))
+                                task.wait(0.01)
+                            end
+                        end
+                    end
+                end)()
+            end)
+
+            -- Bring Weapon
+            local bringWeaponBtn = Instance.new("TextButton", rightContent)
+            bringWeaponBtn.Size = UDim2.new(0, 150, 0, 35)
+            bringWeaponBtn.Position = UDim2.new(0, 170, 0, 90)
+            bringWeaponBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            bringWeaponBtn.TextColor3 = Color3.new(1, 1, 1)
+            bringWeaponBtn.Font = Enum.Font.Gotham
+            bringWeaponBtn.TextSize = 14
+            bringWeaponBtn.Text = "Bring Weapon"
+
+            bringWeaponBtn.MouseButton1Click:Connect(function()
+                local weaponArmorAmmoItems = {
+                    "Leather Body", "Iron Body", "Thorn Body", "Riot Shield",
+                    "Alien Armor", "Spear", "Morningstar", "Katana", "Laser Sword",
+                    "Revolver", "Rifle", "Tactical Shotgun", "Kunai", "Ray Gun", "Laser Cannon",
+                    "Revolver Ammo", "Rifle Ammo", "Shotgun Ammo"
+                }
+                local char = player.Character
+                if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+                local hrpPos = char.HumanoidRootPart.Position
+
+                coroutine.wrap(function()
+                    for _, obj in ipairs(workspace:GetDescendants()) do
+                        if table.find(weaponArmorAmmoItems, obj.Name) then
+                            local partToMove
+                            if obj:IsA("Model") then
+                                partToMove = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                            elseif obj:IsA("BasePart") then
+                                partToMove = obj
+                            end
+                            if partToMove then
+                                partToMove.CFrame = CFrame.new(hrpPos + Vector3.new(math.random(-3,3), 1, math.random(-3,3)))
+                                task.wait(0.01)
+                            end
+                        end
+                    end
+                end)()
+            end)
+
+        elseif cat == "Auto" then
+            -- Auto Plant Sapling (Version corrigée - une seule déclaration)
+            local plantBtn = Instance.new("TextButton", rightContent)
+            plantBtn.Size = UDim2.new(0, 160, 0, 30)
+            plantBtn.Position = UDim2.new(0, 10, 0, 10)
+            plantBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            plantBtn.TextColor3 = Color3.new(1, 1, 1)
+            plantBtn.Font = Enum.Font.Gotham
+            plantBtn.TextSize = 14
+            plantBtn.Text = "Auto Plant Sapling: OFF"
+
+            plantBtn.MouseButton1Click:Connect(function()
+                autoPlant = not autoPlant
+                plantBtn.Text = "Auto Plant Sapling: " .. (autoPlant and "ON" or "OFF")
+                plantBtn.BackgroundColor3 = autoPlant and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
+            end)
+
+            -- Heal Campfire Button
+            local healBtn = Instance.new("TextButton", rightContent)
+            healBtn.Size = UDim2.new(0, 160, 0, 30)
+            healBtn.Position = UDim2.new(0, 180, 0, 10)
+            healBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            healBtn.TextColor3 = Color3.new(1, 1, 1)
+            healBtn.Font = Enum.Font.Gotham
+            healBtn.TextSize = 14
+            healBtn.Text = "Heal Campfire"
+
+            local campfirePosition = Vector3.new(-0.16, 13.20, -0.03)
+
+            healBtn.MouseButton1Click:Connect(function()
+                local namesToTeleport = {
+                    ["corpse"] = true, ["sapling"] = true, ["alien log"] = true,
+                    ["chair"] = true, ["coal"] = true, ["fuel canister"] = true,
+                    ["oil barrel"] = true, ["biofuel"] = true, ["log"] = true,
+                }
+
+                for _, obj in ipairs(workspace:GetDescendants()) do
+                    if obj:IsA("Model") then
+                        local name = obj.Name:lower()
+                        if name:find("log") or namesToTeleport[name] then
+                            local primary = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                            if primary then
+                                primary.CFrame = CFrame.new(campfirePosition + Vector3.new(math.random(-3, 3), 1, math.random(-3, 3)))
+                            end
+                        end
+                    end
+                end
+            end)
+
+            -- Auto Save Button
+            local autoSaveBtn = Instance.new("TextButton", rightContent)
+            autoSaveBtn.Size = UDim2.new(0, 160, 0, 30)
+            autoSaveBtn.Position = UDim2.new(0, 10, 0, 50)
+            autoSaveBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            autoSaveBtn.TextColor3 = Color3.new(1, 1, 1)
+            autoSaveBtn.Font = Enum.Font.Gotham
+            autoSaveBtn.TextSize = 14
+            autoSaveBtn.Text = "Auto Save: OFF"
+
+            autoSaveBtn.MouseButton1Click:Connect(function()
+                autoSaveEnabled = not autoSaveEnabled
+                autoSaveBtn.Text = "Auto Save: " .. (autoSaveEnabled and "ON" or "OFF")
+                autoSaveBtn.BackgroundColor3 = autoSaveEnabled and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
+                game:GetService("StarterGui"):SetCore("SendNotification", {
+                    Title = "SkyyScripts",
+                    Text = "Auto Save "..(autoSaveEnabled and "Activated" or "Disabled"),
+                    Duration = 3
+                })
+            end)
+
+            -- Système de sauvegarde automatique
+            local function setupAutoSave(character)
+                if not character then return end
+                
+                local humanoid = character:FindFirstChildOfClass("Humanoid")
+                if not humanoid then return end
+
+                humanoid.HealthChanged:Connect(function()
+                    if not autoSaveEnabled then return end
+                    if humanoid.Health > humanoid.MaxHealth * 0.25 then return end
+                    if justTeleported then return end -- Protection contre la re-téléportation
                     
-                    -- Téléportation au campfire
-                    if character:FindFirstChild("HumanoidRootPart") then
-                        character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(2.026, 4, 9.497))
+                    local currentTime = os.time()
+                    if currentTime - lastSaveTime < saveCooldown then return end
+                    
+                    lastSaveTime = currentTime
+                    local rootPart = character:FindFirstChild("HumanoidRootPart")
+                    if not rootPart then return end
+
+                    pcall(function()
+                        rootPart.CFrame = campfireCFrame
+                        humanoid.Health = humanoid.MaxHealth
                         
-                        -- Notification
                         game:GetService("StarterGui"):SetCore("SendNotification", {
                             Title = "SkyyScripts",
-                            Text = "You have been saved by Auto Save",
-                            Duration = 5
+                            Text = "You were saved by autosave",
+                            Duration = 5,
+                            Icon = "rbxassetid://6724408119"
                         })
+                    end)
+                end)
+            end
+
+            -- Connexion aux événements
+            player.CharacterAdded:Connect(setupAutoSave)
+            if player.Character then
+                setupAutoSave(player.Character)
+            end
+
+            -- Boucle de plantation automatique (Version corrigée)
+            coroutine.wrap(function()
+                while true do
+                    task.wait(1)
+                    if autoPlant then
+                        for _, obj in ipairs(workspace:GetDescendants()) do
+                            if obj:IsA("Model") and obj.Name == "Item Sapling" and not plantedSaplings[obj] then
+                                local prompt = obj:FindFirstChildWhichIsA("ProximityPrompt", true)
+                                if prompt and prompt.Enabled then
+                                    fireproximityprompt(prompt)
+                                    plantedSaplings[obj] = true
+                                    task.wait(0.2)
+                                end
+                            end
+                        end
                     end
                 end
-            end
-        end)
-    end)
-    
-    -- Existing auto-plant code...
-    -- (conserve ici le code existant pour l'auto-plant)
+            end)()
 
-    elseif cat == "Teleport" then
-        local tpBtn = Instance.new("TextButton", rightContent)
-        tpBtn.Size = UDim2.new(0, 150, 0, 35)
-        tpBtn.Position = UDim2.new(0, 10, 0, 10)
-        tpBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
-        tpBtn.TextColor3 = Color3.new(1, 1, 1)
-        tpBtn.Font = Enum.Font.Gotham
-        tpBtn.TextSize = 14
-        tpBtn.Text = "TP to Campfire"
-        tpBtn.MouseButton1Click:Connect(function()
-            local char = player.Character
-            if char and char:FindFirstChild("HumanoidRootPart") then
-                char.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(2.026, 4, 9.497))
-            end
-        end)
-
--- TP TO CHILD
-local function notify(title, text)
-    game.StarterGui:SetCore("SendNotification", {
-        Title = title,
-        Text = text,
-        Duration = 5
-    })
-end
-
-local teleportBtn = Instance.new("TextButton", rightContent)
-teleportBtn.Size = UDim2.new(0, 160, 0, 30)
-teleportBtn.Position = UDim2.new(0, 10, 0, 50)
-teleportBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
-teleportBtn.TextColor3 = Color3.new(1, 1, 1)
-teleportBtn.Font = Enum.Font.Gotham
-teleportBtn.TextSize = 14
-teleportBtn.Text = "TP to Child"
-
-local options = {"Dino Kid", "Squid Kid", "Kraken Kid", "Koala Kid"}
-
-local dropdown = Instance.new("Frame", rightContent)
-dropdown.Size = UDim2.new(0, 160, 0, #options * 25)
-dropdown.Position = UDim2.new(0, 10, 0, 90)
-dropdown.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-dropdown.Visible = false
-
-for i, childName in ipairs(options) do
-    local btn = Instance.new("TextButton", dropdown)
-    btn.Size = UDim2.new(1, 0, 0, 25)
-    btn.Position = UDim2.new(0, 0, 0, (i - 1) * 25)
-    btn.BackgroundColor3 = Color3.fromRGB(60, 0, 0)
-    btn.TextColor3 = Color3.new(1, 1, 1)
-    btn.Font = Enum.Font.Gotham
-    btn.TextSize = 12
-    btn.Text = childName
-
-    btn.MouseButton1Click:Connect(function()
-        dropdown.Visible = false
-        local found = nil
-
-        for _, obj in ipairs(workspace:GetDescendants()) do
-            if obj:IsA("Model") and obj.Name == childName then
-                local hrp = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChildWhichIsA("BasePart")
-                if hrp then
-                    found = hrp
-                    break
+        elseif cat == "Teleport" then
+            local tpBtn = Instance.new("TextButton", rightContent)
+            tpBtn.Size = UDim2.new(0, 150, 0, 35)
+            tpBtn.Position = UDim2.new(0, 10, 0, 10)
+            tpBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            tpBtn.TextColor3 = Color3.new(1, 1, 1)
+            tpBtn.Font = Enum.Font.Gotham
+            tpBtn.TextSize = 14
+            tpBtn.Text = "TP to Campfire"
+            tpBtn.MouseButton1Click:Connect(function()
+                local char = player.Character
+                if char and char:FindFirstChild("HumanoidRootPart") then
+                    char.HumanoidRootPart.CFrame = campfireCFrame
                 end
+            end)
+
+            -- TP TO CHILD
+            local function notify(title, text)
+                game.StarterGui:SetCore("SendNotification", {
+                    Title = title,
+                    Text = text,
+                    Duration = 5
+                })
             end
-        end
 
-        local character = game.Players.LocalPlayer.Character
-        if found and character and character:FindFirstChild("HumanoidRootPart") then
-            local dist = (character.HumanoidRootPart.Position - found.Position).Magnitude
-            if dist > 3 then
-                character:MoveTo(found.Position)
-            else
-                notify("SkyyScripts", "Map is too small to teleport to this child.")
+            local teleportBtn = Instance.new("TextButton", rightContent)
+            teleportBtn.Size = UDim2.new(0, 150, 0, 35)
+            teleportBtn.Position = UDim2.new(0, 10, 0, 50)
+            teleportBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            teleportBtn.TextColor3 = Color3.new(1, 1, 1)
+            teleportBtn.Font = Enum.Font.Gotham
+            teleportBtn.TextSize = 14
+            teleportBtn.Text = "TP to Child"
+
+            local options = {"Dino Kid", "Squid Kid", "Kraken Kid", "Koala Kid"}
+
+            local dropdown = Instance.new("Frame", rightContent)
+            dropdown.Size = UDim2.new(0, 160, 0, #options * 25)
+            dropdown.Position = UDim2.new(0, 10, 0, 90)
+            dropdown.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            dropdown.Visible = false
+
+            for i, childName in ipairs(options) do
+                local btn = Instance.new("TextButton", dropdown)
+                btn.Size = UDim2.new(1, 0, 0, 25)
+                btn.Position = UDim2.new(0, 0, 0, (i - 1) * 25)
+                btn.BackgroundColor3 = Color3.fromRGB(60, 0, 0)
+                btn.TextColor3 = Color3.new(1, 1, 1)
+                btn.Font = Enum.Font.Gotham
+                btn.TextSize = 12
+                btn.Text = childName
+
+                btn.MouseButton1Click:Connect(function()
+                    dropdown.Visible = false
+                    local found = nil
+
+                    -- Recherche plus large pour les enfants
+                    for _, obj in ipairs(workspace:GetDescendants()) do
+                        local name = obj.Name:lower()
+                        if obj:IsA("Model") and (name:find(childName:lower()) or name:find("kid") or name:find("child")) then
+                            local hrp = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChildWhichIsA("BasePart")
+                            if hrp then
+                                found = hrp
+                                break
+                            end
+                        end
+                    end
+
+                    local character = game.Players.LocalPlayer.Character
+                    if found and character and character:FindFirstChild("HumanoidRootPart") then
+                        -- Téléportation directe au lieu de MoveTo
+                        character.HumanoidRootPart.CFrame = found.CFrame + Vector3.new(0, 3, 0)
+                        notify("SkyyScripts", "Teleported to " .. childName .. "!")
+                    else
+                        notify("SkyyScripts", "Child not found in the map.")
+                    end
+                end)
             end
-        else
-            notify("SkyyScripts", "Child not found in the map.")
+
+            teleportBtn.MouseButton1Click:Connect(function()
+                dropdown.Visible = not dropdown.Visible
+            end)
+
+            -- TP TO CHEST
+            local chestBtn = Instance.new("TextButton", rightContent)
+            chestBtn.Size = UDim2.new(0, 160, 0, 30)
+            chestBtn.Position = UDim2.new(0, 170, 0, 10)
+            chestBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            chestBtn.TextColor3 = Color3.new(1, 1, 1)
+            chestBtn.Font = Enum.Font.Gotham
+            chestBtn.TextSize = 14
+            chestBtn.Text = "TP to Chest"
+
+            -- Détection des coffres
+            local function findChests()
+                local chests = {}
+                for _, obj in ipairs(workspace:GetDescendants()) do
+                    -- Recherche plus large pour les coffres
+                    local name = obj.Name:lower()
+                    if obj:IsA("Model") and (name:find("chest") or name:find("box") or name:find("container")) then
+                        local hrp = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChildWhichIsA("BasePart")
+                        if hrp then
+                            table.insert(chests, {model = obj, part = hrp})
+                        end
+                    end
+                end
+                return chests
+            end
+
+            local chestDropdown = Instance.new("Frame", rightContent)
+            chestDropdown.Size = UDim2.new(0, 160, 0, 100)
+            chestDropdown.Position = UDim2.new(0, 170, 0, 50)
+            chestDropdown.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            chestDropdown.BorderSizePixel = 1
+            chestDropdown.BorderColor3 = Color3.fromRGB(100, 100, 100)
+            chestDropdown.Visible = false
+
+            local selectedChest = nil
+            local tpToChestBtn = Instance.new("TextButton", rightContent)
+            tpToChestBtn.Size = UDim2.new(0, 160, 0, 30)
+            tpToChestBtn.Position = UDim2.new(0, 170, 0, 50)
+            tpToChestBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
+            tpToChestBtn.TextColor3 = Color3.new(1, 1, 1)
+            tpToChestBtn.Font = Enum.Font.Gotham
+            tpToChestBtn.TextSize = 14
+            tpToChestBtn.Text = "Teleport to Chest"
+            tpToChestBtn.Visible = false
+
+            -- Variable pour éviter la re-téléportation automatique
+            local justTeleported = false
+
+            tpToChestBtn.MouseButton1Click:Connect(function()
+                if selectedChest then
+                    local char = player.Character
+                    if char and char:FindFirstChild("HumanoidRootPart") then
+                        justTeleported = true
+                        char.HumanoidRootPart.CFrame = selectedChest.part.CFrame + Vector3.new(0, 3, 0)
+                        notify("SkyyScripts", "Teleported to chest!")
+                        
+                        -- Reset après 5 secondes pour plus de sécurité
+                        coroutine.wrap(function()
+                            task.wait(5)
+                            justTeleported = false
+                        end)()
+                    end
+                end
+            end)
+
+            chestBtn.MouseButton1Click:Connect(function()
+                local chests = findChests()
+                
+                -- Nettoyer l'ancien dropdown
+                for _, child in ipairs(chestDropdown:GetChildren()) do
+                    child:Destroy()
+                end
+
+                if #chests == 0 then
+                    notify("SkyyScripts", "No chests found!")
+                    return
+                end
+
+                -- Créer un ScrollingFrame pour le scroll
+                local scrollFrame = Instance.new("ScrollingFrame", chestDropdown)
+                scrollFrame.Size = UDim2.new(1, 0, 1, 0)
+                scrollFrame.Position = UDim2.new(0, 0, 0, 0)
+                scrollFrame.BackgroundTransparency = 1
+                scrollFrame.ScrollBarThickness = 6
+                scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
+                scrollFrame.CanvasSize = UDim2.new(0, 0, 0, #chests * 25)
+
+                -- Créer les boutons pour chaque coffre
+                for i, chest in ipairs(chests) do
+                    local btn = Instance.new("TextButton", scrollFrame)
+                    btn.Size = UDim2.new(1, 0, 0, 25)
+                    btn.Position = UDim2.new(0, 0, 0, (i - 1) * 25)
+                    btn.BackgroundColor3 = Color3.fromRGB(60, 0, 0)
+                    btn.TextColor3 = Color3.new(1, 1, 1)
+                    btn.Font = Enum.Font.Gotham
+                    btn.TextSize = 12
+                    btn.Text = "Chest " .. i
+
+                    btn.MouseButton1Click:Connect(function()
+                        selectedChest = chest
+                        chestDropdown.Visible = false
+                        tpToChestBtn.Visible = true
+                        notify("SkyyScripts", "Selected Chest " .. i)
+                    end)
+                end
+
+                -- Ajuster la taille du dropdown et le positionner au-dessus du bouton vert
+                local maxHeight = 150 -- Hauteur maximale
+                local calculatedHeight = math.min(#chests * 25, maxHeight)
+                chestDropdown.Size = UDim2.new(0, 160, 0, calculatedHeight)
+                chestDropdown.Position = UDim2.new(0, 170, 0, 90) -- Position au-dessus du bouton vert
+                chestDropdown.Visible = not chestDropdown.Visible
+                
+                -- Debug: Notification pour voir combien de coffres sont trouvés
+                notify("SkyyScripts", "Found " .. #chests .. " chest(s)")
+            end)
+
+        elseif cat == "Settings" then
+            local devLabel = Instance.new("TextLabel", rightContent)
+            devLabel.Size = UDim2.new(1, -20, 0, 30)
+            devLabel.Position = UDim2.new(0, 10, 0, 10)
+            devLabel.BackgroundTransparency = 1
+            devLabel.TextColor3 = Color3.new(1, 1, 1)
+            devLabel.Font = Enum.Font.GothamBold
+            devLabel.TextSize = 18
+            devLabel.Text = "Developer : skyy"
+
+            local linkLabel = Instance.new("TextLabel", rightContent)
+            linkLabel.Size = UDim2.new(1, -20, 0, 30)
+            linkLabel.Position = UDim2.new(0, 10, 0, 45)
+            linkLabel.BackgroundTransparency = 1
+            linkLabel.TextColor3 = Color3.new(1, 1, 1)
+            linkLabel.Font = Enum.Font.Gotham
+            linkLabel.TextSize = 16
+            linkLabel.Text = "https://discord.gg/vtzYXtraXR"
+
+            local infoLabel = Instance.new("TextLabel", rightContent)
+            infoLabel.Size = UDim2.new(1, -20, 0, 30)
+            infoLabel.Position = UDim2.new(0, 10, 0, 80)
+            infoLabel.BackgroundTransparency = 1
+            infoLabel.TextColor3 = Color3.new(1, 1, 1)
+            infoLabel.Font = Enum.Font.Gotham
+            infoLabel.TextSize = 14
+            infoLabel.Text = "G key open/close menu"
+
+            local killBtn = Instance.new("TextButton", rightContent)
+            killBtn.Size = UDim2.new(0, 200, 0, 35)
+            killBtn.Position = UDim2.new(0, 88, 0, 120)
+            killBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 0)
+            killBtn.TextColor3 = Color3.new(1, 1, 1)
+            killBtn.Font = Enum.Font.GothamBold
+            killBtn.TextSize = 14
+            killBtn.Text = "KILL MENU"
+            killBtn.MouseButton1Click:Connect(function()
+                gui:Destroy()
+            end)
         end
-    end)
-end
-
-teleportBtn.MouseButton1Click:Connect(function()
-    dropdown.Visible = not dropdown.Visible
-end)
-
-    elseif cat == "Settings" then
-        local devLabel = Instance.new("TextLabel", rightContent)
-        devLabel.Size = UDim2.new(1, -20, 0, 30)
-        devLabel.Position = UDim2.new(0, 10, 0, 10)
-        devLabel.BackgroundTransparency = 1
-        devLabel.TextColor3 = Color3.new(1, 1, 1)
-        devLabel.Font = Enum.Font.GothamBold
-        devLabel.TextSize = 18
-        devLabel.Text = "Developer : skyy"
-
-        local linkLabel = Instance.new("TextLabel", rightContent)
-        linkLabel.Size = UDim2.new(1, -20, 0, 30)
-        linkLabel.Position = UDim2.new(0, 10, 0, 45)
-        linkLabel.BackgroundTransparency = 1
-        linkLabel.TextColor3 = Color3.new(1, 1, 1)
-        linkLabel.Font = Enum.Font.Gotham
-        linkLabel.TextSize = 16
-        linkLabel.Text = "https://discord.gg/vtzYXtraXR"
-
-        local infoLabel = Instance.new("TextLabel", rightContent)
-        infoLabel.Size = UDim2.new(1, -20, 0, 30)
-        infoLabel.Position = UDim2.new(0, 10, 0, 80)
-        infoLabel.BackgroundTransparency = 1
-        infoLabel.TextColor3 = Color3.new(1, 1, 1)
-        infoLabel.Font = Enum.Font.Gotham
-        infoLabel.TextSize = 14
-        infoLabel.Text = "G key open/close menu"
-
-        local killBtn = Instance.new("TextButton", rightContent)
-        killBtn.Size = UDim2.new(0, 200, 0, 35)
-        killBtn.Position = UDim2.new(0, 88, 0, 120)
-        killBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 0)
-        killBtn.TextColor3 = Color3.new(1, 1, 1)
-        killBtn.Font = Enum.Font.GothamBold
-        killBtn.TextSize = 14
-        killBtn.Text = "KILL MENU"
-        killBtn.MouseButton1Click:Connect(function()
-            gui:Destroy()
-        end)
     end
-end
-
 
     for i, name in ipairs(categories) do
         local btn = Instance.new("TextButton", leftPanel)
@@ -658,7 +729,7 @@ end
     end
 end
 
--- Interface Clé (ancienne version + compact)
+-- Interface Clé
 local keyFrame = Instance.new("Frame", gui)
 keyFrame.Size = UDim2.new(0, 260, 0, 130)
 keyFrame.Position = UDim2.new(0.5, -130, 0.5, -65)
@@ -709,4 +780,4 @@ game:GetService("UserInputService").InputBegan:Connect(function(input, gameProce
             mainFrame.Visible = not mainFrame.Visible
         end
     end
-end)
+end) 
