@@ -121,6 +121,171 @@ local function showMainMenu()
                 end
             end)
 
+            -- FLY SYSTEM
+            local flyEnabled = false
+            local flyBtn = Instance.new("TextButton", rightContent)
+            flyBtn.Size = UDim2.new(0, 150, 0, 35)
+            flyBtn.Position = UDim2.new(0, 170, 0, 10)
+            flyBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            flyBtn.TextColor3 = Color3.new(1, 1, 1)
+            flyBtn.Font = Enum.Font.Gotham
+            flyBtn.TextSize = 14
+            flyBtn.Text = "Fly: OFF"
+
+            local function setupFly()
+                local character = player.Character
+                if not character then return end
+                
+                local humanoid = character:FindFirstChild("Humanoid")
+                local rootPart = character:FindFirstChild("HumanoidRootPart")
+                if not humanoid or not rootPart then return end
+
+                if flyEnabled then
+                    -- Activer le fly
+                    humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+                    
+                    -- Créer le BodyGyro pour la stabilité
+                    local bodyGyro = Instance.new("BodyGyro", rootPart)
+                    bodyGyro.D = 50
+                    bodyGyro.P = 2000
+                    bodyGyro.MaxTorque = Vector3.new(1, 1, 1) * 400000
+                    bodyGyro.CFrame = rootPart.CFrame
+                    
+                    -- Créer le BodyVelocity pour le mouvement
+                    local bodyVelocity = Instance.new("BodyVelocity", rootPart)
+                    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                    bodyVelocity.MaxForce = Vector3.new(1, 1, 1) * 400000
+                    
+                    -- Connexion pour le mouvement
+                    local connection
+                    connection = game:GetService("RunService").Heartbeat:Connect(function()
+                        if not flyEnabled or not character.Parent then
+                            connection:Disconnect()
+                            return
+                        end
+                        
+                        local moveVector = Vector3.new(0, 0, 0)
+                        local inputService = game:GetService("UserInputService")
+                        
+                        if inputService:IsKeyDown(Enum.KeyCode.W) then
+                            moveVector = moveVector + Vector3.new(0, 0, -50)
+                        end
+                        if inputService:IsKeyDown(Enum.KeyCode.S) then
+                            moveVector = moveVector + Vector3.new(0, 0, 50)
+                        end
+                        if inputService:IsKeyDown(Enum.KeyCode.A) then
+                            moveVector = moveVector + Vector3.new(-50, 0, 0)
+                        end
+                        if inputService:IsKeyDown(Enum.KeyCode.D) then
+                            moveVector = moveVector + Vector3.new(50, 0, 0)
+                        end
+                        if inputService:IsKeyDown(Enum.KeyCode.Space) then
+                            moveVector = moveVector + Vector3.new(0, 50, 0)
+                        end
+                        if inputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                            moveVector = moveVector + Vector3.new(0, -50, 0)
+                        end
+                        
+                        bodyVelocity.Velocity = moveVector
+                    end)
+                else
+                    -- Désactiver le fly
+                    humanoid:ChangeState(Enum.HumanoidStateType.Running)
+                    if rootPart:FindFirstChild("BodyGyro") then
+                        rootPart.BodyGyro:Destroy()
+                    end
+                    if rootPart:FindFirstChild("BodyVelocity") then
+                        rootPart.BodyVelocity:Destroy()
+                    end
+                end
+            end
+
+            flyBtn.MouseButton1Click:Connect(function()
+                flyEnabled = not flyEnabled
+                flyBtn.Text = "Fly: " .. (flyEnabled and "ON" or "OFF")
+                flyBtn.BackgroundColor3 = flyEnabled and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
+                setupFly()
+            end)
+
+            -- WALKSPEED SYSTEM
+            local walkSpeedEnabled = false
+            local walkSpeedBtn = Instance.new("TextButton", rightContent)
+            walkSpeedBtn.Size = UDim2.new(0, 150, 0, 35)
+            walkSpeedBtn.Position = UDim2.new(0, 10, 0, 50)
+            walkSpeedBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            walkSpeedBtn.TextColor3 = Color3.new(1, 1, 1)
+            walkSpeedBtn.Font = Enum.Font.Gotham
+            walkSpeedBtn.TextSize = 14
+            walkSpeedBtn.Text = "Speed: OFF"
+
+            local function setupWalkSpeed()
+                local character = player.Character
+                if not character then return end
+                
+                local humanoid = character:FindFirstChild("Humanoid")
+                if not humanoid then return end
+
+                if walkSpeedEnabled then
+                    humanoid.WalkSpeed = 100
+                else
+                    humanoid.WalkSpeed = 16
+                end
+            end
+
+            walkSpeedBtn.MouseButton1Click:Connect(function()
+                walkSpeedEnabled = not walkSpeedEnabled
+                walkSpeedBtn.Text = "Speed: " .. (walkSpeedEnabled and "ON" or "OFF")
+                walkSpeedBtn.BackgroundColor3 = walkSpeedEnabled and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
+                setupWalkSpeed()
+            end)
+
+            -- INFINITE JUMP SYSTEM
+            local infiniteJumpEnabled = false
+            local infiniteJumpBtn = Instance.new("TextButton", rightContent)
+            infiniteJumpBtn.Size = UDim2.new(0, 150, 0, 35)
+            infiniteJumpBtn.Position = UDim2.new(0, 170, 0, 50)
+            infiniteJumpBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            infiniteJumpBtn.TextColor3 = Color3.new(1, 1, 1)
+            infiniteJumpBtn.Font = Enum.Font.Gotham
+            infiniteJumpBtn.TextSize = 14
+            infiniteJumpBtn.Text = "Infinite Jump: OFF"
+
+            local function setupInfiniteJump()
+                local character = player.Character
+                if not character then return end
+                
+                local humanoid = character:FindFirstChild("Humanoid")
+                if not humanoid then return end
+
+                if infiniteJumpEnabled then
+                    humanoid.JumpPower = 100
+                    -- Activer le saut infini
+                    local connection
+                    connection = game:GetService("UserInputService").JumpRequest:Connect(function()
+                        if infiniteJumpEnabled then
+                            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                        end
+                    end)
+                else
+                    humanoid.JumpPower = 50
+                end
+            end
+
+            infiniteJumpBtn.MouseButton1Click:Connect(function()
+                infiniteJumpEnabled = not infiniteJumpEnabled
+                infiniteJumpBtn.Text = "Infinite Jump: " .. (infiniteJumpEnabled and "ON" or "OFF")
+                infiniteJumpBtn.BackgroundColor3 = infiniteJumpEnabled and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
+                setupInfiniteJump()
+            end)
+
+            -- Connexion aux événements pour maintenir les états
+            player.CharacterAdded:Connect(function(character)
+                task.wait(1) -- Attendre que le personnage soit complètement chargé
+                if flyEnabled then setupFly() end
+                if walkSpeedEnabled then setupWalkSpeed() end
+                if infiniteJumpEnabled then setupInfiniteJump() end
+            end)
+
         elseif cat == "Bring Items" then
             -- Bring Food/heal
             local bringBtn = Instance.new("TextButton", rightContent)
