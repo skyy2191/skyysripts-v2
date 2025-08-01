@@ -141,7 +141,7 @@ local function showMainMenu()
                 if not humanoid or not rootPart then return end
 
                 if flyEnabled then
-                    -- Activer le fly
+                    -- Activer le fly (style Infinite Yield)
                     humanoid:ChangeState(Enum.HumanoidStateType.Physics)
                     
                     -- Créer le BodyGyro pour la stabilité
@@ -156,7 +156,7 @@ local function showMainMenu()
                     bodyVelocity.Velocity = Vector3.new(0, 0, 0)
                     bodyVelocity.MaxForce = Vector3.new(1, 1, 1) * 400000
                     
-                    -- Connexion pour le mouvement
+                    -- Connexion pour le mouvement (style Infinite Yield)
                     local connection
                     connection = game:GetService("RunService").Heartbeat:Connect(function()
                         if not flyEnabled or not character.Parent then
@@ -166,24 +166,26 @@ local function showMainMenu()
                         
                         local moveVector = Vector3.new(0, 0, 0)
                         local inputService = game:GetService("UserInputService")
+                        local camera = workspace.CurrentCamera
                         
+                        -- Mouvement basé sur la direction de la caméra
                         if inputService:IsKeyDown(Enum.KeyCode.W) then
-                            moveVector = moveVector + Vector3.new(0, 0, -50)
+                            moveVector = moveVector + (camera.CFrame.LookVector * 50)
                         end
                         if inputService:IsKeyDown(Enum.KeyCode.S) then
-                            moveVector = moveVector + Vector3.new(0, 0, 50)
+                            moveVector = moveVector - (camera.CFrame.LookVector * 50)
                         end
                         if inputService:IsKeyDown(Enum.KeyCode.A) then
-                            moveVector = moveVector + Vector3.new(-50, 0, 0)
+                            moveVector = moveVector - (camera.CFrame.RightVector * 50)
                         end
                         if inputService:IsKeyDown(Enum.KeyCode.D) then
-                            moveVector = moveVector + Vector3.new(50, 0, 0)
+                            moveVector = moveVector + (camera.CFrame.RightVector * 50)
                         end
                         if inputService:IsKeyDown(Enum.KeyCode.Space) then
                             moveVector = moveVector + Vector3.new(0, 50, 0)
                         end
                         if inputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-                            moveVector = moveVector + Vector3.new(0, -50, 0)
+                            moveVector = moveVector - Vector3.new(0, 50, 0)
                         end
                         
                         bodyVelocity.Velocity = moveVector
@@ -276,14 +278,6 @@ local function showMainMenu()
                 infiniteJumpBtn.Text = "Infinite Jump: " .. (infiniteJumpEnabled and "ON" or "OFF")
                 infiniteJumpBtn.BackgroundColor3 = infiniteJumpEnabled and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
                 setupInfiniteJump()
-            end)
-
-            -- Connexion aux événements pour maintenir les états
-            player.CharacterAdded:Connect(function(character)
-                task.wait(1) -- Attendre que le personnage soit complètement chargé
-                if flyEnabled then setupFly() end
-                if walkSpeedEnabled then setupWalkSpeed() end
-                if infiniteJumpEnabled then setupInfiniteJump() end
             end)
 
         elseif cat == "Bring Items" then
@@ -485,7 +479,7 @@ local function showMainMenu()
                     "Leather Body", "Iron Body", "Thorn Body", "Riot Shield",
                     "Alien Armor", "Spear", "Morningstar", "Katana", "Laser Sword",
                     "Revolver", "Rifle", "Tactical Shotgun", "Kunai", "Ray Gun", "Laser Cannon",
-                    "Revolver Ammo", "Rifle Ammo", "Shotgun Ammo"
+                    "Revolver Ammo", "Rifle Ammo", "Shotgun Ammo", "Good axe", "Strong axe", "Chainsaw"
                 }
                 local char = player.Character
                 if not char or not char:FindFirstChild("HumanoidRootPart") then return end
@@ -598,17 +592,24 @@ local function showMainMenu()
                     local rootPart = character:FindFirstChild("HumanoidRootPart")
                     if not rootPart then return end
 
-                    pcall(function()
-                        rootPart.CFrame = campfireCFrame
-                        humanoid.Health = humanoid.MaxHealth
-                        
-                        game:GetService("StarterGui"):SetCore("SendNotification", {
-                            Title = "SkyyScripts",
-                            Text = "You were saved by autosave",
-                            Duration = 5,
-                            Icon = "rbxassetid://6724408119"
-                        })
-                    end)
+                                         pcall(function()
+                         rootPart.CFrame = campfireCFrame
+                         humanoid.Health = humanoid.MaxHealth
+                         
+                         game:GetService("StarterGui"):SetCore("SendNotification", {
+                             Title = "SkyyScripts",
+                             Text = "You were saved by autosave",
+                             Duration = 5,
+                             Icon = "rbxassetid://6724408119"
+                         })
+                         
+                         -- Notification supplémentaire pour la re-téléportation
+                         game:GetService("StarterGui"):SetCore("SendNotification", {
+                             Title = "SkyyScripts",
+                             Text = "You were teleported back to campfire",
+                             Duration = 3
+                         })
+                     end)
                 end)
             end
 
@@ -618,13 +619,13 @@ local function showMainMenu()
                 setupAutoSave(player.Character)
             end
 
-            -- Boucle de plantation automatique (Version corrigée)
+            -- Boucle de plantation automatique (corrigée)
             coroutine.wrap(function()
                 while true do
                     task.wait(1)
                     if autoPlant then
                         for _, obj in ipairs(workspace:GetDescendants()) do
-                            if obj:IsA("Model") and obj.Name == "Item Sapling" and not plantedSaplings[obj] then
+                            if obj:IsA("Model") and obj.Name:lower():find("sapling") and not plantedSaplings[obj] then
                                 local prompt = obj:FindFirstChildWhichIsA("ProximityPrompt", true)
                                 if prompt and prompt.Enabled then
                                     fireproximityprompt(prompt)
@@ -633,6 +634,123 @@ local function showMainMenu()
                                 end
                             end
                         end
+                    end
+                end
+            end)()
+            
+            -- Liste exacte des armes de mêlée et haches
+            local damageTools = {
+                "Old Axe", "Good Axe", "Strong Axe", "Chainsaw", "Spear", "Morningstar", "Katana", "Laser Sword"
+            }
+
+            -- Liste exacte des entités hostiles et animaux
+            local entityNames = {
+                "Wolf", "Alpha Wolf", "Bear", "Polar Bear", "Deer", "Alien", "Alien Elite", "Cultist", "Bunny", "Horse"
+            }
+
+            -- Version flexible pour détecter les armes
+            local function hasDamageTool()
+                local char = player.Character
+                if not char then return false end
+                
+                for _, tool in ipairs(char:GetChildren()) do
+                    if tool:IsA("Tool") then
+                        local toolName = tool.Name:lower()
+                        -- Détection flexible
+                        if toolName:find("axe") or toolName:find("sword") or toolName:find("spear") or 
+                           toolName:find("katana") or toolName:find("morningstar") or toolName:find("laser") then
+                            return tool
+                        end
+                    end
+                end
+                return nil
+            end
+
+            -- Fonction Kill Aura
+            local function killAura()
+                local char = player.Character
+                if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+                local tool = hasDamageTool()
+                if not tool then
+                    game:GetService("StarterGui"):SetCore("SendNotification", {
+                        Title = "SkyyScripts",
+                        Text = "Equip a melee weapon or axe to use Kill Aura!",
+                        Duration = 2
+                    })
+                    return
+                end
+
+                local killed = 0
+                for _, obj in ipairs(workspace:GetDescendants()) do
+                    if obj:IsA("Model") and obj ~= char then
+                        for _, ename in ipairs(entityNames) do
+                            if obj.Name == ename then
+                                local root = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChild("Head")
+                                if root and (root.Position - char.HumanoidRootPart.Position).Magnitude <= 300 then
+                                    -- Tente d'utiliser un ProximityPrompt
+                                    local prompt = obj:FindFirstChildWhichIsA("ProximityPrompt", true)
+                                    if prompt and prompt.Enabled then
+                                        fireproximityprompt(prompt)
+                                        killed = killed + 1
+                                    else
+                                        -- Sinon, tente de tuer via le Humanoid
+                                        local humanoid = obj:FindFirstChildWhichIsA("Humanoid")
+                                        if humanoid and humanoid.Health > 0 then
+                                            humanoid.Health = 0
+                                            killed = killed + 1
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+
+                if killed > 0 then
+                    game:GetService("StarterGui"):SetCore("SendNotification", {
+                        Title = "SkyyScripts",
+                        Text = "Killed " .. killed .. " entities!",
+                        Duration = 2
+                    })
+                end
+            end
+
+            -- Bouton Kill Aura (à placer dans l'UI)
+            local killAuraBtn = Instance.new("TextButton", rightContent)
+            killAuraBtn.Size = UDim2.new(0, 160, 0, 30)
+            killAuraBtn.Position = UDim2.new(0, 180, 0, 50)
+            killAuraBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            killAuraBtn.TextColor3 = Color3.new(1, 1, 1)
+            killAuraBtn.Font = Enum.Font.Gotham
+            killAuraBtn.TextSize = 14
+            killAuraBtn.Text = "Kill Aura: OFF"
+
+            local killAuraEnabled = false
+            killAuraBtn.MouseButton1Click:Connect(function()
+                killAuraEnabled = not killAuraEnabled
+                killAuraBtn.Text = "Kill Aura: " .. (killAuraEnabled and "ON" or "OFF")
+                killAuraBtn.BackgroundColor3 = killAuraEnabled and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
+                if killAuraEnabled then
+                    game:GetService("StarterGui"):SetCore("SendNotification", {
+                        Title = "SkyyScripts",
+                        Text = "Kill Aura Activated!",
+                        Duration = 2
+                    })
+                else
+                    game:GetService("StarterGui"):SetCore("SendNotification", {
+                        Title = "SkyyScripts",
+                        Text = "Kill Aura Disabled!",
+                        Duration = 2
+                    })
+                end
+            end)
+
+            -- Boucle Kill Aura
+            coroutine.wrap(function()
+                while true do
+                    task.wait(1)
+                    if killAuraEnabled then
+                        killAura()
                     end
                 end
             end)()
@@ -730,16 +848,22 @@ local function showMainMenu()
             chestBtn.TextSize = 14
             chestBtn.Text = "TP to Chest"
 
-            -- Détection des coffres
+            -- Détection des coffres (sans duplication)
             local function findChests()
                 local chests = {}
+                local foundNames = {} -- Pour éviter les doublons par nom
+                
                 for _, obj in ipairs(workspace:GetDescendants()) do
                     -- Recherche plus large pour les coffres
                     local name = obj.Name:lower()
                     if obj:IsA("Model") and (name:find("chest") or name:find("box") or name:find("container")) then
-                        local hrp = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChildWhichIsA("BasePart")
-                        if hrp then
-                            table.insert(chests, {model = obj, part = hrp})
+                        -- Vérifier si ce nom a déjà été trouvé
+                        if not foundNames[obj.Name] then
+                            local hrp = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChildWhichIsA("BasePart")
+                            if hrp then
+                                foundNames[obj.Name] = true
+                                table.insert(chests, {model = obj, part = hrp})
+                            end
                         end
                     end
                 end
@@ -772,15 +896,39 @@ local function showMainMenu()
                 if selectedChest then
                     local char = player.Character
                     if char and char:FindFirstChild("HumanoidRootPart") then
-                        justTeleported = true
-                        char.HumanoidRootPart.CFrame = selectedChest.part.CFrame + Vector3.new(0, 3, 0)
-                        notify("SkyyScripts", "Teleported to chest!")
+                        -- Vérifier si le coffre est hors de la map
+                        local chestPos = selectedChest.part.Position
+                        local mapBounds = 1000 -- Limite de la map
                         
-                        -- Reset après 5 secondes pour plus de sécurité
-                        coroutine.wrap(function()
-                            task.wait(5)
-                            justTeleported = false
-                        end)()
+                        if math.abs(chestPos.X) > mapBounds or math.abs(chestPos.Y) > mapBounds or math.abs(chestPos.Z) > mapBounds then
+                            notify("SkyyScripts", "Please expand the map to access this chest!")
+                            return
+                        end
+                        
+                                                 justTeleported = true
+                         char.HumanoidRootPart.CFrame = selectedChest.part.CFrame + Vector3.new(0, 3, 0)
+                         notify("SkyyScripts", "Teleported to chest!")
+                         
+                         -- Notification pour la re-téléportation automatique
+                         coroutine.wrap(function()
+                             task.wait(1) -- Attendre 1 seconde
+                             if char and char:FindFirstChild("HumanoidRootPart") then
+                                 local currentPos = char.HumanoidRootPart.Position
+                                 local chestPos = selectedChest.part.Position
+                                 local distance = (currentPos - chestPos).Magnitude
+                                 
+                                 -- Si on est loin du coffre, c'est qu'on a été re-téléporté
+                                 if distance > 50 then
+                                     notify("SkyyScripts", "You need to unlock more map area to access this chest!")
+                                 end
+                             end
+                         end)()
+                         
+                         -- Reset après 5 secondes pour plus de sécurité
+                         coroutine.wrap(function()
+                             task.wait(5)
+                             justTeleported = false
+                         end)()
                     end
                 end
             end)
@@ -835,6 +983,176 @@ local function showMainMenu()
                 
                 -- Debug: Notification pour voir combien de coffres sont trouvés
                 notify("SkyyScripts", "Found " .. #chests .. " chest(s)")
+            end)
+
+        elseif cat == "Visual" then
+            -- FULL BRIGHT
+            local fullBrightBtn = Instance.new("TextButton", rightContent)
+            fullBrightBtn.Size = UDim2.new(0, 160, 0, 30)
+            fullBrightBtn.Position = UDim2.new(0, 10, 0, 10)
+            fullBrightBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            fullBrightBtn.TextColor3 = Color3.new(1, 1, 1)
+            fullBrightBtn.Font = Enum.Font.Gotham
+            fullBrightBtn.TextSize = 14
+            fullBrightBtn.Text = "Full Bright: OFF"
+
+            local fullBrightEnabled = false
+            local originalLighting = {}
+
+            fullBrightBtn.MouseButton1Click:Connect(function()
+                fullBrightEnabled = not fullBrightEnabled
+                fullBrightBtn.Text = "Full Bright: " .. (fullBrightEnabled and "ON" or "OFF")
+                fullBrightBtn.BackgroundColor3 = fullBrightEnabled and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
+                local lighting = game:GetService("Lighting")
+                if fullBrightEnabled then
+                    originalLighting.Brightness = lighting.Brightness
+                    originalLighting.Ambient = lighting.Ambient
+                    originalLighting.OutdoorAmbient = lighting.OutdoorAmbient
+                    originalLighting.TimeOfDay = lighting.TimeOfDay
+                    lighting.Brightness = 5
+                    lighting.Ambient = Color3.new(1,1,1)
+                    lighting.OutdoorAmbient = Color3.new(1,1,1)
+                    lighting.TimeOfDay = "14:00:00"
+                else
+                    if originalLighting.Brightness then
+                        lighting.Brightness = originalLighting.Brightness
+                        lighting.Ambient = originalLighting.Ambient
+                        lighting.OutdoorAmbient = originalLighting.OutdoorAmbient
+                        lighting.TimeOfDay = originalLighting.TimeOfDay
+                    end
+                end
+            end)
+
+            -- ESP PLAYER, ANIMAL, CHILD
+            local function createESP(part, color)
+                if part:FindFirstChild("ESPBox") then return end
+                local box = Instance.new("BoxHandleAdornment")
+                box.Name = "ESPBox"
+                box.Adornee = part
+                box.AlwaysOnTop = true
+                box.ZIndex = 10
+                box.Size = part.Size
+                box.Color3 = color
+                box.Transparency = 0.7
+                box.Parent = part
+            end
+
+            local function removeESP(part)
+                if part:FindFirstChild("ESPBox") then
+                    part.ESPBox:Destroy()
+                end
+            end
+
+            local function getMainPart(model)
+                -- Cherche d'abord HumanoidRootPart ou Head
+                local main = model:FindFirstChild("HumanoidRootPart") or model:FindFirstChild("Head")
+                if main and main:IsA("BasePart") then
+                    return main
+                end
+                -- Sinon, prend la plus grosse partie
+                local biggest, maxSize = nil, 0
+                for _, part in ipairs(model:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        local size = part.Size.X * part.Size.Y * part.Size.Z
+                        if size > maxSize then
+                            maxSize = size
+                            biggest = part
+                        end
+                    end
+                end
+                return biggest
+            end
+
+            local function isAnimalModel(model)
+                -- Vérifie que c'est un vrai animal (présence d'un Humanoid ou HumanoidRootPart)
+                if model:FindFirstChild("Humanoid") or model:FindFirstChild("HumanoidRootPart") then
+                    return true
+                end
+                -- Ou alors, il a plusieurs parties (genre un vrai animal)
+                local partCount = 0
+                for _, part in ipairs(model:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        partCount = partCount + 1
+                    end
+                end
+                return partCount >= 3 -- au moins 3 parties pour éviter les accessoires/décors
+            end
+
+            local espEnabled = {Player=false, Animal=false, Child=false}
+
+            local function toggleESP(typeName, enabled)
+                espEnabled[typeName] = enabled
+                for _, obj in ipairs(workspace:GetDescendants()) do
+                    if obj:IsA("Model") then
+                        local color = nil
+                        if typeName == "Player" and game.Players:GetPlayerFromCharacter(obj) then
+                            color = Color3.new(0,1,0)
+                        elseif typeName == "Animal" and (obj.Name:lower():find("wolf") or obj.Name:lower():find("bear") or obj.Name:lower():find("deer") or obj.Name:lower():find("fox") or obj.Name:lower():find("rabbit") or obj.Name:lower():find("bunny") or obj.Name:lower():find("hare")) then
+                            if isAnimalModel(obj) then
+                                color = Color3.new(1,0,0)
+                            end
+                        elseif typeName == "Child" and obj.Name:lower():find("kid") then
+                            color = Color3.new(0,0,1)
+                        end
+                        local part = getMainPart(obj)
+                        if part then
+                            if color and enabled then
+                                createESP(part, color)
+                            else
+                                removeESP(part)
+                            end
+                        end
+                    end
+                end
+            end
+
+            -- Boutons ESP
+            local espPlayerBtn = Instance.new("TextButton", rightContent)
+            espPlayerBtn.Size = UDim2.new(0, 160, 0, 30)
+            espPlayerBtn.Position = UDim2.new(0, 10, 0, 50)
+            espPlayerBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            espPlayerBtn.TextColor3 = Color3.new(1, 1, 1)
+            espPlayerBtn.Font = Enum.Font.Gotham
+            espPlayerBtn.TextSize = 14
+            espPlayerBtn.Text = "ESP Player: OFF"
+
+            espPlayerBtn.MouseButton1Click:Connect(function()
+                espEnabled.Player = not espEnabled.Player
+                espPlayerBtn.Text = "ESP Player: " .. (espEnabled.Player and "ON" or "OFF")
+                espPlayerBtn.BackgroundColor3 = espEnabled.Player and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
+                toggleESP("Player", espEnabled.Player)
+            end)
+
+            local espAnimalBtn = Instance.new("TextButton", rightContent)
+            espAnimalBtn.Size = UDim2.new(0, 160, 0, 30)
+            espAnimalBtn.Position = UDim2.new(0, 10, 0, 90)
+            espAnimalBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            espAnimalBtn.TextColor3 = Color3.new(1, 1, 1)
+            espAnimalBtn.Font = Enum.Font.Gotham
+            espAnimalBtn.TextSize = 14
+            espAnimalBtn.Text = "ESP Animal: OFF"
+
+            espAnimalBtn.MouseButton1Click:Connect(function()
+                espEnabled.Animal = not espEnabled.Animal
+                espAnimalBtn.Text = "ESP Animal: " .. (espEnabled.Animal and "ON" or "OFF")
+                espAnimalBtn.BackgroundColor3 = espEnabled.Animal and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
+                toggleESP("Animal", espEnabled.Animal)
+            end)
+
+            local espChildBtn = Instance.new("TextButton", rightContent)
+            espChildBtn.Size = UDim2.new(0, 160, 0, 30)
+            espChildBtn.Position = UDim2.new(0, 10, 0, 130)
+            espChildBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            espChildBtn.TextColor3 = Color3.new(1, 1, 1)
+            espChildBtn.Font = Enum.Font.Gotham
+            espChildBtn.TextSize = 14
+            espChildBtn.Text = "ESP Child: OFF"
+
+            espChildBtn.MouseButton1Click:Connect(function()
+                espEnabled.Child = not espEnabled.Child
+                espChildBtn.Text = "ESP Child: " .. (espEnabled.Child and "ON" or "OFF")
+                espChildBtn.BackgroundColor3 = espEnabled.Child and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
+                toggleESP("Child", espEnabled.Child)
             end)
 
         elseif cat == "Settings" then
