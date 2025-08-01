@@ -782,7 +782,7 @@ local function showMainMenu()
 
             local teleportBtn = Instance.new("TextButton", rightContent)
             teleportBtn.Size = UDim2.new(0, 150, 0, 35)
-            teleportBtn.Position = UDim2.new(0, 10, 0, 50)
+            teleportBtn.Position = UDim2.new(0, 170, 0, 90)
             teleportBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
             teleportBtn.TextColor3 = Color3.new(1, 1, 1)
             teleportBtn.Font = Enum.Font.Gotham
@@ -793,7 +793,7 @@ local function showMainMenu()
 
             local dropdown = Instance.new("Frame", rightContent)
             dropdown.Size = UDim2.new(0, 160, 0, #options * 25)
-            dropdown.Position = UDim2.new(0, 10, 0, 90)
+            dropdown.Position = UDim2.new(0, 170, 0, 130)
             dropdown.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
             dropdown.Visible = false
 
@@ -839,14 +839,14 @@ local function showMainMenu()
             end)
 
             -- TP TO CHEST
-            local chestBtn = Instance.new("TextButton", rightContent)
-            chestBtn.Size = UDim2.new(0, 160, 0, 30)
-            chestBtn.Position = UDim2.new(0, 170, 0, 10)
-            chestBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
-            chestBtn.TextColor3 = Color3.new(1, 1, 1)
-            chestBtn.Font = Enum.Font.Gotham
-            chestBtn.TextSize = 14
-            chestBtn.Text = "TP to Chest"
+local chestBtn = Instance.new("TextButton", rightContent)
+chestBtn.Size = UDim2.new(0, 160, 0, 30)
+chestBtn.Position = UDim2.new(0, 170, 0, 10)
+chestBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+chestBtn.TextColor3 = Color3.new(1, 1, 1)
+chestBtn.Font = Enum.Font.Gotham
+chestBtn.TextSize = 14
+chestBtn.Text = "TP to Chest"
 
             -- Détection des coffres (sans duplication)
             local function findChests()
@@ -871,19 +871,19 @@ local function showMainMenu()
             end
 
             local chestDropdown = Instance.new("Frame", rightContent)
-            chestDropdown.Size = UDim2.new(0, 160, 0, 100)
-            chestDropdown.Position = UDim2.new(0, 170, 0, 50)
-            chestDropdown.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-            chestDropdown.BorderSizePixel = 1
+chestDropdown.Size = UDim2.new(0, 160, 0, 100)
+chestDropdown.Position = UDim2.new(0, 170, 0, 90)
+chestDropdown.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+chestDropdown.BorderSizePixel = 1
             chestDropdown.BorderColor3 = Color3.fromRGB(100, 100, 100)
             chestDropdown.Visible = false
 
             local selectedChest = nil
             local tpToChestBtn = Instance.new("TextButton", rightContent)
-            tpToChestBtn.Size = UDim2.new(0, 160, 0, 30)
-            tpToChestBtn.Position = UDim2.new(0, 170, 0, 50)
-            tpToChestBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
-            tpToChestBtn.TextColor3 = Color3.new(1, 1, 1)
+tpToChestBtn.Size = UDim2.new(0, 160, 0, 30)
+tpToChestBtn.Position = UDim2.new(0, 170, 0, 195)
+tpToChestBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
+tpToChestBtn.TextColor3 = Color3.new(1, 1, 1)
             tpToChestBtn.Font = Enum.Font.Gotham
             tpToChestBtn.TextSize = 14
             tpToChestBtn.Text = "Teleport to Chest"
@@ -974,15 +974,99 @@ local function showMainMenu()
                     end)
                 end
 
-                -- Ajuster la taille du dropdown et le positionner au-dessus du bouton vert
+                -- Ajuster la taille du dropdown et le positionner à côté du bouton TP to Player
                 local maxHeight = 150 -- Hauteur maximale
-                local calculatedHeight = math.min(#chests * 25, maxHeight)
+                                local calculatedHeight = math.min(#chests * 25, maxHeight)
                 chestDropdown.Size = UDim2.new(0, 160, 0, calculatedHeight)
-                chestDropdown.Position = UDim2.new(0, 170, 0, 90) -- Position au-dessus du bouton vert
+                chestDropdown.Position = UDim2.new(0, 170, 0, 90) -- Position à droite du TP to Player
                 chestDropdown.Visible = not chestDropdown.Visible
                 
                 -- Debug: Notification pour voir combien de coffres sont trouvés
                 notify("SkyyScripts", "Found " .. #chests .. " chest(s)")
+            end)
+
+            -- TP TO PLAYER (Nouveau)
+            local tpToPlayerBtn = Instance.new("TextButton", rightContent)
+tpToPlayerBtn.Size = UDim2.new(0, 150, 0, 35)
+tpToPlayerBtn.Position = UDim2.new(0, 10, 0, 90)
+tpToPlayerBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            tpToPlayerBtn.TextColor3 = Color3.new(1, 1, 1)
+            tpToPlayerBtn.Font = Enum.Font.Gotham
+            tpToPlayerBtn.TextSize = 14
+            tpToPlayerBtn.Text = "TP to Player"
+
+            local playerDropdown = Instance.new("Frame", rightContent)
+            playerDropdown.Size = UDim2.new(0, 150, 0, 100)
+            playerDropdown.Position = UDim2.new(0, 10, 0, 125)
+            playerDropdown.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            playerDropdown.BorderSizePixel = 1
+            playerDropdown.BorderColor3 = Color3.fromRGB(100, 100, 100)
+            playerDropdown.Visible = false
+
+            tpToPlayerBtn.MouseButton1Click:Connect(function()
+                local players = game.Players:GetPlayers()
+                local otherPlayers = {}
+                
+                -- Filtrer les autres joueurs (exclure le joueur local)
+                for _, plr in ipairs(players) do
+                    if plr ~= player then
+                        table.insert(otherPlayers, plr)
+                    end
+                end
+
+                if #otherPlayers == 0 then
+                    notify("SkyyScripts", "No other players found!")
+                    return
+                end
+
+                -- Nettoyer l'ancien dropdown
+                for _, child in ipairs(playerDropdown:GetChildren()) do
+                    child:Destroy()
+                end
+
+                -- Créer un ScrollingFrame pour le scroll
+                local scrollFrame = Instance.new("ScrollingFrame", playerDropdown)
+                scrollFrame.Size = UDim2.new(1, 0, 1, 0)
+                scrollFrame.Position = UDim2.new(0, 0, 0, 0)
+                scrollFrame.BackgroundTransparency = 1
+                scrollFrame.ScrollBarThickness = 6
+                scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
+                scrollFrame.CanvasSize = UDim2.new(0, 0, 0, #otherPlayers * 25)
+
+                -- Créer les boutons pour chaque joueur
+                for i, plr in ipairs(otherPlayers) do
+                    local btn = Instance.new("TextButton", scrollFrame)
+                    btn.Size = UDim2.new(1, 0, 0, 25)
+                    btn.Position = UDim2.new(0, 0, 0, (i - 1) * 25)
+                    btn.BackgroundColor3 = Color3.fromRGB(60, 0, 0)
+                    btn.TextColor3 = Color3.new(1, 1, 1)
+                    btn.Font = Enum.Font.Gotham
+                    btn.TextSize = 12
+                    btn.Text = plr.Name
+
+                    btn.MouseButton1Click:Connect(function()
+                        playerDropdown.Visible = false
+                        
+                        local targetChar = plr.Character
+                        local myChar = player.Character
+                        
+                        if targetChar and targetChar:FindFirstChild("HumanoidRootPart") and myChar and myChar:FindFirstChild("HumanoidRootPart") then
+                            myChar.HumanoidRootPart.CFrame = targetChar.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
+                            notify("SkyyScripts", "Teleported to " .. plr.Name .. "!")
+                        else
+                            notify("SkyyScripts", "Player not found or not spawned!")
+                        end
+                    end)
+                end
+
+                -- Ajuster la taille du dropdown
+                local maxHeight = 150 -- Hauteur maximale
+                local calculatedHeight = math.min(#otherPlayers * 25, maxHeight)
+                playerDropdown.Size = UDim2.new(0, 150, 0, calculatedHeight)
+                playerDropdown.Position = UDim2.new(0, 10, 0, 125)
+                playerDropdown.Visible = not playerDropdown.Visible
+                
+                notify("SkyyScripts", "Found " .. #otherPlayers .. " player(s)")
             end)
 
         elseif cat == "Visual" then
@@ -1078,7 +1162,7 @@ local function showMainMenu()
                 return partCount >= 3 -- au moins 3 parties pour éviter les accessoires/décors
             end
 
-            local espEnabled = {Player=false, Animal=false, Child=false}
+            local espEnabled = {Player=false, Animal=false, Child=false, Chest=false}
 
             local function toggleESP(typeName, enabled)
                 espEnabled[typeName] = enabled
@@ -1093,6 +1177,8 @@ local function showMainMenu()
                             end
                         elseif typeName == "Child" and obj.Name:lower():find("kid") then
                             color = Color3.new(0,0,1)
+                        elseif typeName == "Chest" and (obj.Name:lower():find("chest") or obj.Name:lower():find("box") or obj.Name:lower():find("container")) then
+                            color = Color3.new(1,1,0) -- Jaune pour les coffres
                         end
                         local part = getMainPart(obj)
                         if part then
@@ -1155,6 +1241,37 @@ local function showMainMenu()
                 toggleESP("Child", espEnabled.Child)
             end)
 
+            -- ESP Chest (Nouveau)
+            local espChestBtn = Instance.new("TextButton", rightContent)
+            espChestBtn.Size = UDim2.new(0, 160, 0, 30)
+            espChestBtn.Position = UDim2.new(0, 10, 0, 170)
+            espChestBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            espChestBtn.TextColor3 = Color3.new(1, 1, 1)
+            espChestBtn.Font = Enum.Font.Gotham
+            espChestBtn.TextSize = 14
+            espChestBtn.Text = "ESP Chest: OFF"
+
+            espChestBtn.MouseButton1Click:Connect(function()
+                espEnabled.Chest = not espEnabled.Chest
+                espChestBtn.Text = "ESP Chest: " .. (espEnabled.Chest and "ON" or "OFF")
+                espChestBtn.BackgroundColor3 = espEnabled.Chest and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
+                toggleESP("Chest", espEnabled.Chest)
+                
+                if espEnabled.Chest then
+                    game:GetService("StarterGui"):SetCore("SendNotification", {
+                        Title = "SkyyScripts",
+                        Text = "ESP Chest activated! All chests on the map are now visible.",
+                        Duration = 3
+                    })
+                else
+                    game:GetService("StarterGui"):SetCore("SendNotification", {
+                        Title = "SkyyScripts",
+                        Text = "ESP Chest disabled!",
+                        Duration = 2
+                    })
+                end
+            end)
+
         elseif cat == "Settings" then
             local devLabel = Instance.new("TextLabel", rightContent)
             devLabel.Size = UDim2.new(1, -20, 0, 30)
@@ -1175,9 +1292,7 @@ local function showMainMenu()
             linkLabel.Text = "https://discord.gg/vtzYXtraXR"
 
             local infoLabel = Instance.new("TextLabel", rightContent)
-            infoLabel.Size = UDim2.new(1, -20, 0, 30)
-            infoLabel.Position = UDim2.new(0, 10, 0, 80)
-            infoLabel.BackgroundTransparency = 1
+             infoLabel.BackgroundTransparency = 1
             infoLabel.TextColor3 = Color3.new(1, 1, 1)
             infoLabel.Font = Enum.Font.Gotham
             infoLabel.TextSize = 14
@@ -1263,4 +1378,6 @@ game:GetService("UserInputService").InputBegan:Connect(function(input, gameProce
             mainFrame.Visible = not mainFrame.Visible
         end
     end
-end) 
+end)    infoLabel.Size = UDim2.new(1, -20, 0, 30)
+            infoLabel.Position = UDim2.new(0, 10, 0, 80)
+        
