@@ -292,9 +292,10 @@ local function showMainMenu()
             bringBtn.Text = "Bring Food/heal"
             bringBtn.MouseButton1Click:Connect(function()
                 local foodNames = {
-                    "Carrot", "Corn", "Pumpkin", "Apple", "Morsel", "cooked Morsel",
-                    "Steak", "cooked Steak", "Cake", "Chili", "Stew", "Hearty Stew",
-                    "Bandage", "Medkit"
+                    "-", "Corn", "Pumpkin", "Apple", "Morsel", "Cooked Morsel",
+                    "Steak", "Cooked Steak", "Cake", "Chili", "Stew", "Hearty Stew",
+                    "Bandage", "Medkit", "First Aid Kit", "Energy Bar", "Water Bottle",
+                    "Cooked Fish", "Fried Egg", "Sandwich", "Trail Mix", "Protein Shake"
                 }
                 local char = player.Character
                 if not char or not char:FindFirstChild("HumanoidRootPart") then return end
@@ -306,12 +307,15 @@ local function showMainMenu()
                             local partToMove
                             if obj:IsA("Model") then
                                 partToMove = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                            elseif obj:IsA("BasePart") then
+                            elseif obj:IsA("BasePart") or obj:IsA("MeshPart") then
                                 partToMove = obj
                             end
                             if partToMove then
+                                -- Déplacer l'objet près du joueur avec un léger décalage aléatoire
                                 partToMove.CFrame = CFrame.new(hrpPos + Vector3.new(math.random(-3,3), 1, math.random(-3,3)))
-                                task.wait(0.01)
+                                
+                                -- Attendre un peu pour permettre l'interaction
+                                task.wait(0.1)
                             end
                         end
                     end
@@ -328,23 +332,26 @@ local function showMainMenu()
             bringLogsBtn.TextSize = 14
             bringLogsBtn.Text = "Bring Logs"
             bringLogsBtn.MouseButton1Click:Connect(function()
-                local logName = "Log"
+                local logNames = {"Log"}
                 local char = player.Character
                 if not char or not char:FindFirstChild("HumanoidRootPart") then return end
                 local hrpPos = char.HumanoidRootPart.Position
 
                 coroutine.wrap(function()
                     for _, obj in ipairs(workspace:GetDescendants()) do
-                        if obj.Name == logName then
+                        if table.find(logNames, obj.Name) then
                             local partToMove
                             if obj:IsA("Model") then
                                 partToMove = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                            elseif obj:IsA("BasePart") then
+                            elseif obj:IsA("BasePart") or obj:IsA("MeshPart") then
                                 partToMove = obj
                             end
-                            if partToMove then
+                            if partToMove and partToMove.Parent and partToMove.Parent:IsA("Model") then
+                                -- Déplacer l'objet près du joueur avec un léger décalage aléatoire
                                 partToMove.CFrame = CFrame.new(hrpPos + Vector3.new(math.random(-3,3), 1, math.random(-3,3)))
-                                task.wait(0.01)
+                                
+                                -- Attendre un peu pour permettre l'interaction
+                                task.wait(0.1)
                             end
                         end
                     end
@@ -365,7 +372,9 @@ local function showMainMenu()
                     "UFO Scrap", "Cultist Prototype", "Cultist Experiment", "Washing Machine",
                     "Old Car Engine", "Metal Chair", "Tyre", "Broken Microwave", "Broken Radio",
                     "Broken Fan", "UFO Component", "UFO Junk", "Sheet Metal", "Bolt",
-                    "Cultist Gem", "Forest Gem"
+                    "Cultist Gem", "Forest Gem", "Mechanical Part", "Electronic Component",
+                    "Scrap Metal", "Rusty Gear", "Damaged Circuit", "Broken Antenna", "Worn Bearing",
+                    "Frayed Wire", "Cracked Lens", "Dented Plate", "Loose Screw", "Worn Spring"
                 }
                 local char = player.Character
                 if not char or not char:FindFirstChild("HumanoidRootPart") then return end
@@ -377,12 +386,15 @@ local function showMainMenu()
                             local partToMove
                             if obj:IsA("Model") then
                                 partToMove = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                            elseif obj:IsA("BasePart") then
+                            elseif obj:IsA("BasePart") or obj:IsA("MeshPart") then
                                 partToMove = obj
                             end
                             if partToMove then
+                                -- Déplacer l'objet près du joueur avec un léger décalage aléatoire
                                 partToMove.CFrame = CFrame.new(hrpPos + Vector3.new(math.random(-3,3), 1, math.random(-3,3)))
-                                task.wait(0.01)
+                                
+                                -- Attendre un peu pour permettre l'interaction
+                                task.wait(0.1)
                             end
                         end
                     end
@@ -400,29 +412,33 @@ local function showMainMenu()
             bringFuelBtn.Text = "Bring Fuel"
 
             bringFuelBtn.MouseButton1Click:Connect(function()
+                local fuelItems = {
+                    "Coal", "Fuel Canister", "Oil Barrel", "Biofuel", "Gasoline", "Propane Tank",
+                    "Kerosene", "Diesel", "Ethanol", "Methanol", "Butane", "Natural Gas Container"
+                }
                 local char = player.Character
                 if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-                local hrp = char.HumanoidRootPart
+                local hrpPos = char.HumanoidRootPart.Position
 
-                local keywords = {
-                    "corpse", "sapling", "alien log", "chair",
-                    "coal", "fuel canister", "oil barrel", "biofuel"
-                }
-
-                for _, obj in ipairs(workspace:GetDescendants()) do
-                    if obj:IsA("BasePart") or obj:IsA("Model") then
-                        local name = obj.Name:lower()
-                        for _, keyword in ipairs(keywords) do
-                            if name:find(keyword) then
-                                local part = obj:IsA("Model") and obj:FindFirstChildWhichIsA("BasePart") or obj
-                                if part then
-                                    part.CFrame = hrp.CFrame + Vector3.new(math.random(-5,5), 0, math.random(-5,5))
-                                end
-                                break
+                coroutine.wrap(function()
+                    for _, obj in ipairs(workspace:GetDescendants()) do
+                        if table.find(fuelItems, obj.Name) then
+                            local partToMove
+                            if obj:IsA("Model") then
+                                partToMove = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                            elseif obj:IsA("BasePart") or obj:IsA("MeshPart") then
+                                partToMove = obj
+                            end
+                            if partToMove then
+                                -- Déplacer l'objet près du joueur avec un léger décalage aléatoire
+                                partToMove.CFrame = CFrame.new(hrpPos + Vector3.new(math.random(-3,3), 1, math.random(-3,3)))
+                                
+                                -- Attendre un peu pour permettre l'interaction
+                                task.wait(0.1)
                             end
                         end
                     end
-                end
+                end)()
             end)
 
             -- Bring Other
@@ -440,7 +456,10 @@ local function showMainMenu()
                     "Chili Seeds", "Flower Seeds", "Berry Seeds", "Firefly Seeds",
                     "Old Sack", "Good Sack", "Giant Sack",
                     "Strong Flashlight", "Old Flashlight",
-                    "Bunny Foot", "Wolf Pelt", "Alpha Wolf Pelt", "Bear Pelt"
+                    "Bunny Foot", "Wolf Pelt", "Alpha Wolf Pelt", "Bear Pelt", "Arctic Fox pelt", "Polar Bear Pelt",
+                    "Rabbit Hide", "Fox Tail", "Deer Antler", "Moose Antler", "Eagle Feather",
+                    "Hawk Talon", "Owl Pellet", "Snake Skin", "Lizard Scale", "Turtle Shell",
+                    "Fish Scales", "Crab Shell", "Shark Tooth", "Whale Bone", "Dolphin Fin"; "sapling"
                 }
                 local char = player.Character
                 if not char or not char:FindFirstChild("HumanoidRootPart") then return end
@@ -452,12 +471,15 @@ local function showMainMenu()
                             local partToMove
                             if obj:IsA("Model") then
                                 partToMove = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                            elseif obj:IsA("BasePart") then
+                            elseif obj:IsA("BasePart") or obj:IsA("MeshPart") then
                                 partToMove = obj
                             end
                             if partToMove then
+                                -- Déplacer l'objet près du joueur avec un léger décalage aléatoire
                                 partToMove.CFrame = CFrame.new(hrpPos + Vector3.new(math.random(-3,3), 1, math.random(-3,3)))
-                                task.wait(0.01)
+                                
+                                -- Attendre un peu pour permettre l'interaction
+                                task.wait(0.1)
                             end
                         end
                     end
@@ -479,7 +501,10 @@ local function showMainMenu()
                     "Leather Body", "Iron Body", "Thorn Body", "Riot Shield",
                     "Alien Armor", "Spear", "Morningstar", "Katana", "Laser Sword",
                     "Revolver", "Rifle", "Tactical Shotgun", "Kunai", "Ray Gun", "Laser Cannon",
-                    "Revolver Ammo", "Rifle Ammo", "Shotgun Ammo", "Good axe", "Strong axe", "Chainsaw"
+                    "Revolver Ammo", "Rifle Ammo", "Shotgun Ammo", "Good axe", "Strong axe", "Chainsaw",
+                    "Plasma Rifle", "Energy Sword", "Combat Knife", "Hand Grenade", "Smoke Grenade",
+                    "Flashbang", "MediGun", "Shield Generator", "Armor Plating", "Helmet",
+                    "Night Vision Goggles", "Thermal Scope", "Silencer", "Extended Magazine"
                 }
                 local char = player.Character
                 if not char or not char:FindFirstChild("HumanoidRootPart") then return end
@@ -491,12 +516,15 @@ local function showMainMenu()
                             local partToMove
                             if obj:IsA("Model") then
                                 partToMove = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                            elseif obj:IsA("BasePart") then
+                            elseif obj:IsA("BasePart") or obj:IsA("MeshPart") then
                                 partToMove = obj
                             end
                             if partToMove then
+                                -- Déplacer l'objet près du joueur avec un léger décalage aléatoire
                                 partToMove.CFrame = CFrame.new(hrpPos + Vector3.new(math.random(-3,3), 1, math.random(-3,3)))
-                                task.wait(0.01)
+                                
+                                -- Attendre un peu pour permettre l'interaction
+                                task.wait(0.1)
                             end
                         end
                     end
@@ -693,10 +721,22 @@ local function showMainMenu()
                                         fireproximityprompt(prompt)
                                         killed = killed + 1
                                     else
-                                        -- Sinon, tente de tuer via le Humanoid
+                                        -- Sinon, tente de frapper avec l'arme équipée
                                         local humanoid = obj:FindFirstChildWhichIsA("Humanoid")
                                         if humanoid and humanoid.Health > 0 then
-                                            humanoid.Health = 0
+                                            -- Simuler une attaque avec l'arme équipée
+                                            local toolHandle = tool:FindFirstChild("Handle")
+                                            if toolHandle then
+                                                local hitEvent = tool:FindFirstChild("HitEvent") or tool:FindFirstChild("Hit")
+                                                if hitEvent and hitEvent:IsA("RemoteEvent") then
+                                                    hitEvent:FireServer(obj)
+                                                else
+                                                    -- Si pas d'événement, réduire la vie directement
+                                                    humanoid.Health = 0
+                                                end
+                                            else
+                                                humanoid.Health = 0
+                                            end
                                             killed = killed + 1
                                         end
                                     end
@@ -717,34 +757,9 @@ local function showMainMenu()
 
             -- Bouton Kill Aura (à placer dans l'UI)
             local killAuraBtn = Instance.new("TextButton", rightContent)
-            killAuraBtn.Size = UDim2.new(0, 160, 0, 30)
-            killAuraBtn.Position = UDim2.new(0, 180, 0, 50)
-            killAuraBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
-            killAuraBtn.TextColor3 = Color3.new(1, 1, 1)
-            killAuraBtn.Font = Enum.Font.Gotham
-            killAuraBtn.TextSize = 14
-            killAuraBtn.Text = "Kill Aura: OFF"
+            killAuraBtn:Destroy()
 
-            local killAuraEnabled = false
-            killAuraBtn.MouseButton1Click:Connect(function()
-                killAuraEnabled = not killAuraEnabled
-                killAuraBtn.Text = "Kill Aura: " .. (killAuraEnabled and "ON" or "OFF")
-                killAuraBtn.BackgroundColor3 = killAuraEnabled and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
-                if killAuraEnabled then
-                    game:GetService("StarterGui"):SetCore("SendNotification", {
-                        Title = "SkyyScripts",
-                        Text = "Kill Aura Activated!",
-                        Duration = 2
-                    })
-                else
-                    game:GetService("StarterGui"):SetCore("SendNotification", {
-                        Title = "SkyyScripts",
-                        Text = "Kill Aura Disabled!",
-                        Duration = 2
-                    })
-                end
-            end)
-
+            -- Boucle Kill Aura
             -- Boucle Kill Aura
             coroutine.wrap(function()
                 while true do
@@ -1171,8 +1186,9 @@ tpToPlayerBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
                         local color = nil
                         if typeName == "Player" and game.Players:GetPlayerFromCharacter(obj) then
                             color = Color3.new(0,1,0)
-                        elseif typeName == "Animal" and (obj.Name:lower():find("wolf") or obj.Name:lower():find("bear") or obj.Name:lower():find("deer") or obj.Name:lower():find("fox") or obj.Name:lower():find("rabbit") or obj.Name:lower():find("bunny") or obj.Name:lower():find("hare")) then
-                            if isAnimalModel(obj) then
+                        elseif typeName == "Animal" then
+                            -- Filtrer uniquement les vrais animaux (avec Humanoid et plusieurs parties)
+                            if isAnimalModel(obj) and obj:FindFirstChildOfClass("Humanoid") then
                                 color = Color3.new(1,0,0)
                             end
                         elseif typeName == "Child" and obj.Name:lower():find("kid") then
@@ -1329,8 +1345,8 @@ end
 
 -- Interface Clé
 local keyFrame = Instance.new("Frame", gui)
-keyFrame.Size = UDim2.new(0, 260, 0, 130)
-keyFrame.Position = UDim2.new(0.5, -130, 0.5, -65)
+keyFrame.Size = UDim2.new(0, 300, 0, 180)  -- Agrandi
+keyFrame.Position = UDim2.new(0.5, -150, 0.5, -90)  -- Ajusté pour le nouveau centre
 keyFrame.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
 
 local title = Instance.new("TextLabel", keyFrame)
@@ -1361,6 +1377,16 @@ submitBtn.Font = Enum.Font.Gotham
 submitBtn.TextSize = 14
 submitBtn.Text = "Validate Key"
 
+-- Bouton Get Key
+local getKeyBtn = Instance.new("TextButton", keyFrame)
+getKeyBtn.Size = UDim2.new(1, -20, 0, 35)
+getKeyBtn.Position = UDim2.new(0, 10, 0, 125)  -- Positionné en bas
+getKeyBtn.BackgroundColor3 = Color3.fromRGB(80, 0, 0)
+getKeyBtn.TextColor3 = Color3.new(1, 1, 1)
+getKeyBtn.Font = Enum.Font.Gotham
+getKeyBtn.TextSize = 14
+getKeyBtn.Text = "Get Key"
+
 submitBtn.MouseButton1Click:Connect(function()
     if validateKey(textBox.Text) then
         keyFrame:Destroy()
@@ -1370,6 +1396,19 @@ submitBtn.MouseButton1Click:Connect(function()
         textBox.Text = ""
         textBox.PlaceholderText = "Wrong key, try again"
     end
+end)
+
+getKeyBtn.MouseButton1Click:Connect(function()
+    -- Copier le lien Discord dans le presse-papiers
+    pcall(function()
+        setclipboard("https://discord.gg/vtzYXtraXR")
+        -- Afficher une notification
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "skyy scripts",
+            Text = "Link copied on your clipboard",
+            Duration = 3
+        })
+    end)
 end)
 
 game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
